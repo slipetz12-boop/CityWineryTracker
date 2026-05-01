@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Winery — Tour Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cw:       #6B1A3A;
+  --cw-dark:  #4a1128;
+  --cw-mid:   #9B4060;
+  --cw-light: #f5eaef;
+  --cw-pale:  #fdf5f8;
+  --text:     #1a1a1a;
+  --muted:    #6b6b6b;
+  --bg:       #ffffff;
+  --bg2:      #f8f6f7;
+  --border:   rgba(107,26,58,0.12);
+  --border-mid: rgba(107,26,58,0.22);
+  --radius:   10px;
+  --shadow:   0 2px 12px rgba(107,26,58,0.08);
+  --green:    #2E7D32;
+  --amber:    #E65100;
+  --red:      #C62828;
+}
+body { font-family: 'Georgia', serif; color: var(--text); background: #ede6e9; min-height: 100vh; }
+
+/* ── NAV ── */
+.nav {
+  background: var(--cw-dark);
+  height: 54px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+}
+.nav-left { display: flex; align-items: center; gap: 14px; }
+.cw-wordmark {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cw-wordmark:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+.nav-title { font-size: 14px; color: #fff; font-weight: normal; letter-spacing: 0.02em; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.2); }
+.nav-btn.primary { background: rgba(255,255,255,0.18); }
+.nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+#csv-in { display: none; }
+
+/* ── SCREENS ── */
+#screen-home   { display: block; }
+#screen-tour   { display: none; }
+#screen-new    { display: none; }
+
+/* ── HOME ── */
+.home-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 28px; }
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.tour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.tour-card {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid var(--border);
+}
+.tour-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(107,26,58,0.14); }
+.card-artist { font-size: 18px; color: var(--cw); margin-bottom: 2px; }
+.card-tour   { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.card-gauges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.gauge-wrap  { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gauge-city  { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.gauge-ring  {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  position: relative;
+  background: conic-gradient(var(--cw) calc(var(--pct) * 3.6deg), #e8dde2 0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gauge-ring::before {
+  content: '';
+  width: 32px; height: 32px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+}
+.gauge-val { font-size: 9px; color: var(--cw); font-weight: bold; z-index: 1; position: relative; }
+.card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.stat-box { background: var(--bg2); border-radius: 6px; padding: 10px; }
+.stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.stat-val   { font-size: 18px; color: var(--cw); font-weight: bold; }
+.stat-sub   { font-size: 10px; color: var(--muted); }
+.card-foot  { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.card-actions { display: flex; gap: 8px; }
+.btn-sm {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-mid);
+  background: transparent;
+  color: var(--cw);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+.btn-sm:hover { background: var(--cw-light); }
+.btn-sm.primary {
+  background: var(--cw);
+  color: #fff;
+  border-color: var(--cw);
+}
+.btn-sm.primary:hover { background: var(--cw-dark); }
+.new-card {
+  background: transparent;
+  border: 2px dashed var(--border-mid);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 180px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--muted);
+}
+.new-card:hover { border-color: var(--cw); color: var(--cw); background: var(--cw-pale); }
+.new-card-icon { font-size: 28px; }
+.new-card-label { font-size: 13px; letter-spacing: 0.03em; }
+
+/* ── TOUR DASHBOARD ── */
+.tour-wrap { max-width: 1100px; margin: 0 auto; padding: 28px; }
+.tour-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.tour-header-left h1 { font-size: 26px; color: var(--cw); }
+.tour-header-left p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.th-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.tour-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; gap: 0; }
+.tab {
+  padding: 10px 18px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab.active { color: var(--cw); border-bottom-color: var(--cw); }
+.tab:hover:not(.active) { color: var(--cw-mid); }
+.pane { display: none; }
+.pane.active { display: block; }
+
+/* SNAPSHOT */
+.snapshot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.snap-box { background: var(--bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.snap-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.snap-val   { font-size: 26px; color: var(--cw); font-weight: bold; }
+.snap-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* PROGRESS BARS */
+.progress-section { background: var(--bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border); }
+.progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.progress-track { height: 8px; background: #e8dde2; border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+.progress-fill  { height: 100%; border-radius: 4px; transition: width 0.4s; }
+.progress-fill.cw    { background: var(--cw); }
+.progress-fill.green { background: var(--green); }
+.progress-fill.amber { background: var(--amber); }
+
+/* BY SHOW */
+.shows-table { width: 100%; border-collapse: collapse; background: var(--bg); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.shows-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.shows-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.shows-table tr:last-child td { border-bottom: none; }
+.shows-table tr:hover td { background: var(--cw-pale); }
+.city-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--cw-light);
+  color: var(--cw);
+}
+
+/* WEEK OVER WEEK */
+.wow-chart-wrap { background: var(--bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+
+/* PACING */
+.pacing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.pacing-city-card { background: var(--bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.pacing-city-name { font-size: 14px; color: var(--cw); font-weight: bold; margin-bottom: 10px; }
+.pacing-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: var(--muted); }
+.pacing-val { color: var(--text); font-weight: bold; }
+.presale-summary { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+
+/* NEW TOUR FORM */
+.form-wrap { max-width: 700px; margin: 0 auto; padding: 28px; }
+.form-wrap h2 { font-size: 22px; color: var(--cw); margin-bottom: 6px; }
+.form-wrap p  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.form-section { margin-bottom: 28px; }
+.form-section-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+.form-input {
+  padding: 9px 12px;
+  border: 1px solid var(--border-mid);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.15s;
+}
+.form-input:focus { outline: none; border-color: var(--cw); }
+.city-caps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.city-cap-card { background: var(--bg2); border-radius: 8px; padding: 14px; border: 1px solid var(--border); }
+.city-cap-name { font-size: 12px; color: var(--cw); font-weight: bold; margin-bottom: 10px; }
+.form-actions { display: flex; gap: 12px; padding: 20px 0; }
+.btn-primary {
+  background: var(--cw);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--cw-dark); }
+.btn-secondary {
+  background: transparent;
+  color: var(--cw);
+  border: 1px solid var(--border-mid);
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--cw-dark);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 999;
+  max-width: 360px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="cw-wordmark" onclick="goHome()">CITY WINERY</div>
+    <span class="nav-title">Tour Tracker</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn" onclick="document.getElementById('csv-in').click()">⬆ Upload CSV</button>
+    <div class="nav-divider"></div>
+    <button class="nav-btn primary" onclick="saveData()">✓ Save Data</button>
+    <input type="file" id="csv-in" accept=".csv" onchange="handleCSV(event)">
+  </div>
+</nav>
+
+<!-- HOME SCREEN -->
+<div id="screen-home">
+  <div class="home-wrap">
+    <div class="section-label">Active Tours</div>
+    <div class="tour-grid" id="tour-grid">
+      <div class="new-card" onclick="showNewTour()">
+        <div class="new-card-icon">＋</div>
+        <div class="new-card-label">New Tour</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOUR DASHBOARD SCREEN -->
+<div id="screen-tour">
+  <div class="tour-wrap">
+    <div class="tour-header">
+      <div class="tour-header-left">
+        <h1 id="th-artist"></h1>
+        <p id="th-tourname"></p>
+        <div class="th-sub" id="th-sub"></div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sm" onclick="goHome()">← Back</button>
+        <button class="btn-sm" onclick="archiveTour()">Archive</button>
+      </div>
+    </div>
+    <div class="tour-tabs">
+      <div class="tab active" onclick="showPane('pane-sales',this)">Ticket Sales</div>
+      <div class="tab" onclick="showPane('pane-shows',this)">By Show</div>
+      <div class="tab" onclick="showPane('pane-wow',this)">Week over Week</div>
+      <div class="tab" onclick="showPane('pane-pacing',this)">Pacing & Goals</div>
+    </div>
+    <div id="pane-sales" class="pane active"></div>
+    <div id="pane-shows" class="pane"></div>
+    <div id="pane-wow"   class="pane"></div>
+    <div id="pane-pacing" class="pane"></div>
+  </div>
+</div>
+
+<!-- NEW TOUR SCREEN -->
+<div id="screen-new">
+  <div class="form-wrap">
+    <h2>Add New Tour</h2>
+    <p>Enter the tour details. You can upload CSVs later to update ticket counts.</p>
+
+    <div class="form-section">
+      <div class="form-section-title">Tour Info</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Artist Name *</label>
+          <input class="form-input" id="f-artist" placeholder="e.g. Lyle Lovett">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tour Name *</label>
+          <input class="form-input" id="f-tourname" placeholder="e.g. City Winery Tour 2026">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CSV Keyword (for auto-matching)</label>
+          <input class="form-input" id="f-keyword" placeholder="e.g. Lyle_Lovett">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Artist Presale Date</label>
+          <input class="form-input" id="f-presale" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">On-Sale Date</label>
+          <input class="form-input" id="f-onsale" type="date">
+        </div>
+        <div class="form-group"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Markets & Capacities</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Enter each market name and its sellable capacity, breakeven tickets, and target gross.</p>
+      <div id="markets-list"></div>
+      <button class="btn-secondary" style="margin-top:10px;" onclick="addMarketRow()">+ Add Market</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="createTour()">Create Tour</button>
+      <button class="btn-secondary" onclick="goHome()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════
+const DRIVE_URL = 'https://script.google.com/macros/s/AKfycbxLZYQYs_KFYQDp_KaXhbz2vXoqrulBlC8UZp8BVocrrHSwZmsCArFOflweh-G2QSse/exec';
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let TOURS = {};
+let activeTourId = null;
+let wowChart = null;
+
+// ════════════════════════════════════════════════════════
+// DRIVE SYNC
+// ════════════════════════════════════════════════════════
+async function syncFromDrive() {
+  try {
+    const r = await fetch(DRIVE_URL, { method: 'POST', body: 'READ' });
+    const text = await r.text();
+    const d = JSON.parse(text);
+    if (d && d.tours) {
+      TOURS = d.tours;
+      renderHome();
+      toast('✓ Data loaded from shared Drive');
+    }
+  } catch (e) {
+    console.log('Drive read failed:', e.message);
+  }
+}
+
+async function syncToDrive() {
+  try {
+    const payload = JSON.stringify({
+      version: 1,
+      updatedAt: new Date().toISOString().slice(0, 10),
+      tours: TOURS
+    });
+    const r = await fetch(DRIVE_URL, { method: 'POST', body: payload });
+    const t = await r.text();
+    if (r.ok && t === 'ok') {
+      toast('✓ Saved to shared Drive — team will see this on refresh');
+    }
+  } catch (e) {
+    console.log('Drive write failed:', e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function showScreen(id) {
+  ['screen-home','screen-tour','screen-new'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function goHome() {
+  activeTourId = null;
+  if (wowChart) { wowChart.destroy(); wowChart = null; }
+  showScreen('screen-home');
+  renderHome();
+}
+
+function showNewTour() {
+  showScreen('screen-new');
+  document.getElementById('markets-list').innerHTML = '';
+  addMarketRow();
+  addMarketRow();
+}
+
+function openTour(id) {
+  activeTourId = id;
+  showScreen('screen-tour');
+  buildTourDash();
+}
+
+// ════════════════════════════════════════════════════════
+// HOME RENDER
+// ════════════════════════════════════════════════════════
+function renderHome() {
+  const grid = document.getElementById('tour-grid');
+  const tours = Object.values(TOURS).filter(t => !t.archived);
+  grid.innerHTML = tours.map(t => tourCard(t)).join('') +
+    `<div class="new-card" onclick="showNewTour()">
+      <div class="new-card-icon">＋</div>
+      <div class="new-card-label">New Tour</div>
+    </div>`;
+}
+
+function tourCard(tour) {
+  const shows = tour.shows || [];
+  const totalSold = shows.reduce((a, s) => a + (s.count || 0), 0);
+  const totalRev  = shows.reduce((a, s) => a + (s.sales || 0), 0);
+  const caps = tour.caps || {};
+  const cities = Object.keys(caps);
+  const totalSell = cities.reduce((a, c) => a + (caps[c].sell || 0), 0);
+  const pct = totalSell ? Math.round(totalSold / totalSell * 100) : 0;
+  const totalShows = shows.length;
+  const totalMarkets = cities.length;
+
+  const gauges = cities.slice(0, 6).map(city => {
+    const citySold = shows.filter(s => s.city === city).reduce((a, s) => a + (s.count || 0), 0);
+    const cityCap  = caps[city]?.sell || 1;
+    const cityPct  = Math.min(100, Math.round(citySold / cityCap * 100));
+    const short = city.length > 8 ? city.substring(0, 8) : city;
+    return `<div class="gauge-wrap">
+      <div class="gauge-ring" style="--pct:${cityPct}">
+        <span class="gauge-val">${cityPct}%</span>
+      </div>
+      <div class="gauge-city">${short}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="tour-card" onclick="openTour('${tour.id}')">
+    <div class="card-artist">${tour.artist}</div>
+    <div class="card-tour">${tour.tourName}</div>
+    <div class="card-gauges">${gauges}</div>
+    <div class="card-stats">
+      <div class="stat-box">
+        <div class="stat-label">Tickets Sold</div>
+        <div class="stat-val">${totalSold.toLocaleString()}</div>
+        <div class="stat-sub">${totalMarkets} markets · ${totalShows} shows</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Overall Cap %</div>
+        <div class="stat-val">${pct}%</div>
+        <div class="stat-sub">of ${totalSell.toLocaleString()} sellable</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Gross Revenue</div>
+        <div class="stat-val">$${(totalRev/1000).toFixed(0)}k</div>
+        <div class="stat-sub">from ticketing</div>
+      </div>
+    </div>
+    <div class="card-foot">
+      <span>Updated ${tour.updatedAt || '—'}</span>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn-sm primary" onclick="openTour('${tour.id}')">Open dashboard</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// TOUR DASHBOARD
+// ════════════════════════════════════════════════════════
+function showPane(id, el) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function buildTourDash() {
+  const tour = TOURS[activeTourId];
+  if (!tour) return;
+  document.getElementById('th-artist').textContent = tour.artist;
+  document.getElementById('th-tourname').textContent = tour.tourName;
+  document.getElementById('th-sub').textContent = `Updated ${tour.updatedAt || '—'}`;
+  // Reset tabs
+  document.querySelectorAll('.pane').forEach(p => { p.classList.remove('active'); p.innerHTML = ''; });
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.getElementById('pane-sales').classList.add('active');
+  buildSales(tour);
+  buildByShow(tour);
+  buildWoW(tour);
+  buildPacing(tour);
+}
+
+function buildSales(tour) {
+  const shows = tour.shows || [];
+  const caps  = tour.caps || {};
+  const cities = Object.keys(caps);
+  const totalSold = shows.reduce((a,s) => a + (s.count||0), 0);
+  const totalRev  = shows.reduce((a,s) => a + (s.sales||0), 0);
+  const totalSell = cities.reduce((a,c) => a + (caps[c].sell||0), 0);
+  const totalBE   = cities.reduce((a,c) => a + (caps[c].beTickets||0), 0);
+  const totalBEG  = cities.reduce((a,c) => a + (caps[c].beGross||0), 0);
+  const totalPot  = cities.reduce((a,c) => a + (caps[c].potGross||0), 0);
+  const bePct  = totalBE   ? Math.round(totalSold/totalBE*100)  : 0;
+  const beGPct = totalBEG  ? Math.round(totalRev/totalBEG*100)  : 0;
+  const potPct = totalPot  ? Math.round(totalRev/totalPot*100)  : 0;
+
+  document.getElementById('pane-sales').innerHTML = `
+    <div class="snapshot-grid">
+      <div class="snap-box">
+        <div class="snap-label">Tickets Sold</div>
+        <div class="snap-val">${totalSold.toLocaleString()}</div>
+        <div class="snap-sub">${cities.length} markets · ${shows.length} shows</div>
+      </div>
+      <div class="snap-box">
+        <div class="snap-label">Gross Revenue</div>
+        <div class="snap-val">$${totalRev.toLocaleString()}</div>
+        <div class="snap-sub">from ticketing system</div>
+      </div>
+      <div class="snap-box">
+        <div class="snap-label">Sellable Capacity</div>
+        <div class="snap-val">${totalSell.toLocaleString()}</div>
+        <div class="snap-sub">all shows combined</div>
+      </div>
+      <div class="snap-box">
+        <div class="snap-label">% to Sellable Cap</div>
+        <div class="snap-val">${totalSell ? Math.round(totalSold/totalSell*100) : 0}%</div>
+        <div class="snap-sub">overall</div>
+      </div>
+      ${totalBE ? `<div class="snap-box">
+        <div class="snap-label">Breakeven Tickets</div>
+        <div class="snap-val">${totalBE.toLocaleString()}</div>
+        <div class="snap-sub">${totalSold.toLocaleString()} sold · ${Math.max(0,totalBE-totalSold).toLocaleString()} to go</div>
+      </div>` : ''}
+      ${totalBEG ? `<div class="snap-box">
+        <div class="snap-label">Breakeven Gross</div>
+        <div class="snap-val">$${totalBEG.toLocaleString()}</div>
+        <div class="snap-sub">$${totalRev.toLocaleString()} earned</div>
+      </div>` : ''}
+      ${totalPot ? `<div class="snap-box">
+        <div class="snap-label">Tour Potential Gross</div>
+        <div class="snap-val">$${totalPot.toLocaleString()}</div>
+        <div class="snap-sub">${potPct}% achieved</div>
+      </div>` : ''}
+    </div>
+    ${totalBE ? `<div class="progress-section">
+      <div class="progress-label"><span>Tickets vs Breakeven (${totalSold.toLocaleString()} of ${totalBE.toLocaleString()})</span><span>${bePct}%</span></div>
+      <div class="progress-track"><div class="progress-fill ${bePct>=100?'green':bePct>=70?'cw':'amber'}" style="width:${Math.min(100,bePct)}%"></div></div>
+      ${totalBEG ? `<div class="progress-label"><span>Gross vs Breakeven ($${totalRev.toLocaleString()} of $${totalBEG.toLocaleString()})</span><span>${beGPct}%</span></div>
+      <div class="progress-track"><div class="progress-fill ${beGPct>=100?'green':beGPct>=70?'cw':'amber'}" style="width:${Math.min(100,beGPct)}%"></div></div>` : ''}
+      ${totalPot ? `<div class="progress-label"><span>Gross vs Potential ($${totalRev.toLocaleString()} of $${totalPot.toLocaleString()})</span><span>${potPct}%</span></div>
+      <div class="progress-track"><div class="progress-fill cw" style="width:${Math.min(100,potPct)}%"></div></div>` : ''}
+    </div>` : ''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+      ${cities.map(city => {
+        const sold = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.count||0),0);
+        const rev  = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.sales||0),0);
+        const cap  = caps[city];
+        const pct  = cap?.sell ? Math.round(sold/cap.sell*100) : 0;
+        return `<div class="snap-box">
+          <div class="snap-label">${city}</div>
+          <div class="snap-val" style="font-size:20px">${pct}%</div>
+          <div class="snap-sub">${sold.toLocaleString()} of ${(cap?.sell||0).toLocaleString()} sellable</div>
+          ${cap?.beTickets ? `<div class="snap-sub">BE: ${cap.beTickets.toLocaleString()} tkts</div>` : ''}
+          ${rev ? `<div class="snap-sub">$${rev.toLocaleString()}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function buildByShow(tour) {
+  const shows = (tour.shows || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById('pane-shows').innerHTML = shows.length ? `
+    <table class="shows-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>City</th>
+          <th>Tickets Sold</th>
+          <th>Gross Revenue</th>
+          <th>Cap %</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${shows.map(s => {
+          const cap = tour.caps?.[s.city]?.sell || 0;
+          const pct = cap ? Math.round((s.count||0)/cap*100) : 0;
+          return `<tr>
+            <td>${s.date}</td>
+            <td><span class="city-badge">${s.city}</span></td>
+            <td>${(s.count||0).toLocaleString()}</td>
+            <td>${s.sales ? '$'+s.sales.toLocaleString() : '—'}</td>
+            <td>${cap ? pct+'%' : '—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>` : '<p style="color:var(--muted);padding:20px;">No show data yet. Upload a CSV to get started.</p>';
+}
+
+function buildWoW(tour) {
+  const snaps = tour.wowSnapshots || [];
+  if (!snaps.length) {
+    document.getElementById('pane-wow').innerHTML = '<p style="color:var(--muted);padding:20px;">No week-over-week data yet. Data is captured automatically each time you upload a CSV.</p>';
+    return;
+  }
+  const labels = snaps.map(s => s.uploadedAt);
+  const cities = Object.keys(snaps[0].totals || {});
+  const colors = ['#6B1A3A','#9B4060','#C97090','#2E7D32','#1565C0','#E65100','#6A1B9A','#00695C'];
+  const datasets = cities.map((city,i) => ({
+    label: city,
+    data: snaps.map(s => s.totals[city] || 0),
+    borderColor: colors[i % colors.length],
+    backgroundColor: colors[i % colors.length] + '20',
+    tension: 0.3,
+    fill: false,
+  }));
+  if (wowChart) wowChart.destroy();
+  document.getElementById('pane-wow').innerHTML = '<div class="wow-chart-wrap"><canvas id="wow-canvas" height="300"></canvas></div>';
+  wowChart = new Chart(document.getElementById('wow-canvas'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function buildPacing(tour) {
+  const shows = tour.shows || [];
+  const caps  = tour.caps  || {};
+  const cities = Object.keys(caps);
+  if (!cities.length) {
+    document.getElementById('pane-pacing').innerHTML = '<p style="color:var(--muted);padding:20px;">No markets configured for this tour.</p>';
+    return;
+  }
+  document.getElementById('pane-pacing').innerHTML = `<div class="pacing-grid">
+    ${cities.map(city => {
+      const sold = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.count||0),0);
+      const rev  = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.sales||0),0);
+      const cap  = caps[city] || {};
+      const pct  = cap.sell ? Math.round(sold/cap.sell*100) : 0;
+      const bePct = cap.beTickets ? Math.round(sold/cap.beTickets*100) : 0;
+      return `<div class="pacing-city-card">
+        <div class="pacing-city-name">${city}</div>
+        <div class="pacing-row"><span>Sold</span><span class="pacing-val">${sold.toLocaleString()}</span></div>
+        <div class="pacing-row"><span>Sellable Cap</span><span class="pacing-val">${(cap.sell||0).toLocaleString()} (${pct}%)</span></div>
+        ${cap.beTickets ? `<div class="pacing-row"><span>Breakeven Tkts</span><span class="pacing-val">${cap.beTickets.toLocaleString()} (${bePct}%)</span></div>` : ''}
+        ${cap.beGross   ? `<div class="pacing-row"><span>Breakeven Gross</span><span class="pacing-val">$${cap.beGross.toLocaleString()}</span></div>` : ''}
+        ${cap.potGross  ? `<div class="pacing-row"><span>Potential Gross</span><span class="pacing-val">$${cap.potGross.toLocaleString()}</span></div>` : ''}
+        ${rev ? `<div class="pacing-row"><span>Revenue</span><span class="pacing-val">$${rev.toLocaleString()}</span></div>` : ''}
+        <div class="progress-track" style="margin-top:10px">
+          <div class="progress-fill ${pct>=100?'green':pct>=70?'cw':'amber'}" style="width:${Math.min(100,pct)}%"></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// NEW TOUR FORM
+// ════════════════════════════════════════════════════════
+function addMarketRow() {
+  const list = document.getElementById('markets-list');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'city-cap-card';
+  div.style.marginBottom = '12px';
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <input class="form-input" placeholder="Market name (e.g. Chicago)" style="flex:1;margin-right:8px;" data-field="city">
+      <button onclick="this.closest('.city-cap-card').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="form-group">
+        <label class="form-label">Sellable Cap</label>
+        <input class="form-input" type="number" placeholder="e.g. 280" data-field="sell">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total Cap</label>
+        <input class="form-input" type="number" placeholder="e.g. 310" data-field="total">
+      </div>
+      <div class="form-group">
+        <label class="form-label">BE Tickets</label>
+        <input class="form-input" type="number" placeholder="e.g. 390" data-field="beTickets">
+      </div>
+      <div class="form-group">
+        <label class="form-label">BE Gross ($)</label>
+        <input class="form-input" type="number" placeholder="e.g. 67000" data-field="beGross">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Potential Gross ($)</label>
+        <input class="form-input" type="number" placeholder="e.g. 140000" data-field="potGross">
+      </div>
+    </div>`;
+  list.appendChild(div);
+}
+
+function createTour() {
+  const artist   = document.getElementById('f-artist').value.trim();
+  const tourName = document.getElementById('f-tourname').value.trim();
+  if (!artist || !tourName) { toast('Please enter artist name and tour name'); return; }
+
+  const keyword = document.getElementById('f-keyword').value.trim() || artist.replace(/\s+/g,'_');
+  const presale = document.getElementById('f-presale').value;
+  const onsale  = document.getElementById('f-onsale').value;
+
+  const caps = {};
+  document.querySelectorAll('#markets-list .city-cap-card').forEach(card => {
+    const city = card.querySelector('[data-field="city"]').value.trim();
+    if (!city) return;
+    caps[city] = {
+      sell:       parseInt(card.querySelector('[data-field="sell"]').value) || 0,
+      total:      parseInt(card.querySelector('[data-field="total"]').value) || 0,
+      beTickets:  parseInt(card.querySelector('[data-field="beTickets"]').value) || 0,
+      beGross:    parseInt(card.querySelector('[data-field="beGross"]').value) || 0,
+      potGross:   parseInt(card.querySelector('[data-field="potGross"]').value) || 0,
+    };
+  });
+
+  const id = artist.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + new Date().getFullYear();
+  TOURS[id] = {
+    id, artist, tourName, keyword,
+    status: 'active',
+    archived: false,
+    updatedAt: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),
+    presaleDate: presale,
+    onsaleDate: onsale,
+    caps,
+    shows: [],
+    wowSnapshots: [],
+    presaleSnapshot: null,
+    presaleLockedAt: null,
+  };
+
+  syncToDrive();
+  toast(`✓ ${artist} tour created`);
+  goHome();
+}
+
+// ════════════════════════════════════════════════════════
+// CSV UPLOAD
+// ════════════════════════════════════════════════════════
+function handleCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const shows = parseCSV(ev.target.result);
+    if (!shows) { toast('⚠ Could not parse CSV — check column names'); return; }
+
+    // Match tour by keyword or artist name
+    const filename = file.name;
+    const tour = Object.values(TOURS).find(t =>
+      !t.archived && (
+        filename.toLowerCase().includes((t.keyword||'').toLowerCase()) ||
+        filename.toLowerCase().includes(t.artist.toLowerCase().replace(/\s+/g,'_')) ||
+        filename.toLowerCase().includes(t.artist.toLowerCase().replace(/\s+/g,' '))
+      )
+    ) || (activeTourId ? TOURS[activeTourId] : null);
+
+    if (!tour) {
+      toast('⚠ Could not match CSV to a tour. Open a tour first, then upload.');
+      return;
+    }
+
+    // Save WoW snapshot
+    const totals = {};
+    shows.forEach(s => { totals[s.city] = (totals[s.city]||0) + (s.count||0); });
+    const uploadDate = new Date().toISOString().slice(0,10);
+    if (!tour.wowSnapshots) tour.wowSnapshots = [];
+    // Only add if date is new
+    if (!tour.wowSnapshots.find(w => w.uploadDate === uploadDate)) {
+      tour.wowSnapshots.push({ uploadDate, uploadedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), totals });
+    }
+
+    tour.shows = shows;
+    tour.updatedAt = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+    // Rebuild dash if viewing this tour
+    if (activeTourId === tour.id) buildTourDash();
+    else renderHome();
+
+    syncToDrive();
+    toast(`✓ ${tour.artist} updated with ${shows.length} records from ${file.name}`);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return null;
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const dateIdx  = headers.findIndex(h => h.includes('event start') || h.includes('date'));
+  const cityIdx  = headers.findIndex(h => h.includes('location') || h.includes('city'));
+  const countIdx = headers.findIndex(h => h === 'count' || h.includes('ticket'));
+  const salesIdx = headers.findIndex(h => h === 'sales' || h.includes('revenue') || h.includes('gross'));
+  if (dateIdx < 0 || cityIdx < 0 || countIdx < 0) return null;
+
+  const shows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
+    if (!cols[dateIdx]) continue;
+    const rawDate = cols[dateIdx];
+    let date = rawDate;
+    // Convert MM/DD/YYYY to YYYY-MM-DD
+    const m = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) date = `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+    shows.push({
+      date,
+      city: cols[cityIdx] || '',
+      count: parseInt(cols[countIdx]) || 0,
+      sales: salesIdx >= 0 ? parseInt(cols[salesIdx]) || 0 : 0,
+    });
+  }
+  return shows.length ? shows : null;
+}
+
+// ════════════════════════════════════════════════════════
+// SAVE DATA
+// ════════════════════════════════════════════════════════
+function saveData() {
+  syncToDrive();
+}
+
+// ════════════════════════════════════════════════════════
+// ARCHIVE
+// ════════════════════════════════════════════════════════
+function archiveTour() {
+  if (!activeTourId) return;
+  if (!confirm(`Archive ${TOURS[activeTourId].artist}? It will be hidden from the home screen.`)) return;
+  TOURS[activeTourId].archived = true;
+  syncToDrive();
+  toast(`${TOURS[activeTourId].artist} archived`);
+  goHome();
+}
+
+// ════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+goHome();
+syncFromDrive();
+</script>
+</body>
+</html>
