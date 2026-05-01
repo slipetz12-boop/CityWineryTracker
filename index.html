@@ -4,945 +4,772 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>City Winery — Tour Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── RESET & BASE ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --cw:       #6B1A3A;
-  --cw-dark:  #4a1128;
-  --cw-mid:   #9B4060;
-  --cw-light: #f5eaef;
-  --cw-pale:  #fdf5f8;
-  --text:     #1a1a1a;
-  --muted:    #6b6b6b;
-  --bg:       #ffffff;
-  --bg2:      #f8f6f7;
-  --border:   rgba(107,26,58,0.12);
-  --border-mid: rgba(107,26,58,0.22);
-  --radius:   10px;
-  --shadow:   0 2px 12px rgba(107,26,58,0.08);
-  --green:    #2E7D32;
-  --amber:    #E65100;
-  --red:      #C62828;
+  --wine:       #7B1D2E;
+  --wine-light: #A63248;
+  --wine-pale:  #F5EBE8;
+  --gold:       #C89B3C;
+  --gold-light: #E8C86E;
+  --ink:        #1A1410;
+  --slate:      #4A3F35;
+  --mist:       #F9F5F2;
+  --border:     #E2D5CC;
+  --white:      #FFFFFF;
+  --green:      #2D6A4F;
+  --amber:      #C96B2A;
+  --radius:     8px;
+  --shadow-lg:  0 8px 32px rgba(26,20,16,.14);
 }
-body { font-family: 'Georgia', serif; color: var(--text); background: #ede6e9; min-height: 100vh; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--mist); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.5; }
 
-/* ── NAV ── */
-.nav {
-  background: var(--cw-dark);
-  height: 54px;
-  padding: 0 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.3);
-}
-.nav-left { display: flex; align-items: center; gap: 14px; }
-.cw-wordmark {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.cw-wordmark:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
-.nav-title { font-size: 14px; color: #fff; font-weight: normal; letter-spacing: 0.02em; }
-.nav-right { display: flex; align-items: center; gap: 10px; }
-.nav-btn {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-.nav-btn:hover { background: rgba(255,255,255,0.2); }
-.nav-btn.primary { background: rgba(255,255,255,0.18); }
-.nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 2px; }
-#csv-in { display: none; }
+/* HEADER */
+header { background: var(--wine); color: #fff; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(123,29,46,.35); }
+.hbrand { display: flex; align-items: center; gap: 12px; }
+.hbrand h1 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; letter-spacing: .02em; }
+.hbrand .sub { font-size: 12px; font-weight: 300; opacity: .65; letter-spacing: .1em; text-transform: uppercase; }
+.hdiv { width: 1px; height: 28px; background: rgba(255,255,255,.25); }
+.hactions { display: flex; align-items: center; gap: 10px; }
 
-/* ── SCREENS ── */
-#screen-home   { display: block; }
-#screen-tour   { display: none; }
-#screen-new    { display: none; }
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; white-space: nowrap; }
+.btn-ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.22); }
+.btn-ghost:hover { background: rgba(255,255,255,.2); }
+.btn-save { background: var(--gold); color: var(--ink); font-weight: 600; }
+.btn-save:hover { background: var(--gold-light); }
+.btn-primary { background: var(--wine); color: #fff; font-weight: 600; }
+.btn-primary:hover { background: var(--wine-light); }
+.btn-secondary { background: var(--white); color: var(--slate); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--wine-pale); border-color: var(--wine-light); color: var(--wine); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 7px; }
 
-/* ── HOME ── */
-.home-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 28px; }
-.section-label {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 16px;
-}
-.tour-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-.tour-card {
-  background: var(--bg);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  border: 1px solid var(--border);
-}
-.tour-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(107,26,58,0.14); }
-.card-artist { font-size: 18px; color: var(--cw); margin-bottom: 2px; }
-.card-tour   { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
-.card-gauges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-.gauge-wrap  { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.gauge-city  { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.gauge-ring  {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  position: relative;
-  background: conic-gradient(var(--cw) calc(var(--pct) * 3.6deg), #e8dde2 0deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gauge-ring::before {
-  content: '';
-  width: 32px; height: 32px;
-  background: #fff;
-  border-radius: 50%;
-  position: absolute;
-}
-.gauge-val { font-size: 9px; color: var(--cw); font-weight: bold; z-index: 1; position: relative; }
-.card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.stat-box { background: var(--bg2); border-radius: 6px; padding: 10px; }
-.stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-.stat-val   { font-size: 18px; color: var(--cw); font-weight: bold; }
-.stat-sub   { font-size: 10px; color: var(--muted); }
-.card-foot  { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
-.card-actions { display: flex; gap: 8px; }
-.btn-sm {
-  font-size: 11px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-mid);
-  background: transparent;
-  color: var(--cw);
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.12s;
-}
-.btn-sm:hover { background: var(--cw-light); }
-.btn-sm.primary {
-  background: var(--cw);
-  color: #fff;
-  border-color: var(--cw);
-}
-.btn-sm.primary:hover { background: var(--cw-dark); }
-.new-card {
-  background: transparent;
-  border: 2px dashed var(--border-mid);
-  border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 180px;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: var(--muted);
-}
-.new-card:hover { border-color: var(--cw); color: var(--cw); background: var(--cw-pale); }
-.new-card-icon { font-size: 28px; }
-.new-card-label { font-size: 13px; letter-spacing: 0.03em; }
+/* LAYOUT */
+.layout { display: flex; height: calc(100vh - 60px); overflow: hidden; }
 
-/* ── TOUR DASHBOARD ── */
-.tour-wrap { max-width: 1100px; margin: 0 auto; padding: 28px; }
-.tour-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-.tour-header-left h1 { font-size: 26px; color: var(--cw); }
-.tour-header-left p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
-.th-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
-.tour-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; gap: 0; }
-.tab {
-  padding: 10px 18px;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all 0.15s;
-}
-.tab.active { color: var(--cw); border-bottom-color: var(--cw); }
-.tab:hover:not(.active) { color: var(--cw-mid); }
-.pane { display: none; }
-.pane.active { display: block; }
+/* SIDEBAR */
+.sidebar { width: 260px; min-width: 260px; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.sb-head { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.sb-title { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .08em; }
+.sb-list { flex: 1; overflow-y: auto; padding: 8px; }
+.sb-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between; transition: background .12s; border: 1px solid transparent; }
+.sb-item:hover { background: var(--wine-pale); }
+.sb-item.active { background: var(--wine-pale); border-color: var(--wine-light); }
+.sb-name { font-weight: 500; font-size: 13px; color: var(--ink); }
+.sb-sub { font-size: 11px; color: var(--slate); margin-top: 1px; }
+.sb-arr { color: var(--wine); font-size: 14px; opacity: 0; transition: opacity .12s; }
+.sb-item.active .sb-arr, .sb-item:hover .sb-arr { opacity: 1; }
+.sb-foot { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
 
-/* SNAPSHOT */
-.snapshot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.snap-box { background: var(--bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.snap-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
-.snap-val   { font-size: 26px; color: var(--cw); font-weight: bold; }
-.snap-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+/* MAIN */
+.main { flex: 1; overflow-y: auto; }
 
-/* PROGRESS BARS */
-.progress-section { background: var(--bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border); }
-.progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
-.progress-track { height: 8px; background: #e8dde2; border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
-.progress-fill  { height: 100%; border-radius: 4px; transition: width 0.4s; }
-.progress-fill.cw    { background: var(--cw); }
-.progress-fill.green { background: var(--green); }
-.progress-fill.amber { background: var(--amber); }
+/* EMPTY STATE */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; color: var(--slate); text-align: center; padding: 40px; }
+.empty-icon { font-size: 48px; opacity: .4; }
+.empty-state h2 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--ink); }
+.empty-state p { font-size: 14px; max-width: 340px; line-height: 1.6; }
 
-/* BY SHOW */
-.shows-table { width: 100%; border-collapse: collapse; background: var(--bg); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.shows-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg2); }
-.shows-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
-.shows-table tr:last-child td { border-bottom: none; }
-.shows-table tr:hover td { background: var(--cw-pale); }
-.city-badge {
-  display: inline-block;
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--cw-light);
-  color: var(--cw);
-}
+/* PAGE HEADER */
+.pg-head { background: var(--white); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.pg-head-l h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--ink); }
+.pg-head-l p { font-size: 13px; color: var(--slate); margin-top: 3px; }
+.pg-head-r { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-/* WEEK OVER WEEK */
-.wow-chart-wrap { background: var(--bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+/* TABS */
+.tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--border); padding: 0 32px; }
+.tab { padding: 12px 18px; font-size: 13px; font-weight: 500; color: var(--slate); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
+.tab:hover { color: var(--wine); }
+.tab.active { color: var(--wine); border-bottom-color: var(--wine); font-weight: 600; }
+
+/* TAB CONTENT */
+.tab-content { padding: 28px 32px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* SECTION TITLE */
+.sec-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; }
+.stat-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--ink); margin-top: 4px; }
+.stat-sub { font-size: 11px; color: var(--slate); margin-top: 3px; }
+
+/* DATA TABLE */
+.tbl-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { background: var(--mist); padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.tbl th.r { text-align: right; }
+.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.tbl td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: var(--wine-pale); }
+.tbl tr.sub td { background: #fdf8f6; }
+.tbl tr.sub:hover td { background: var(--wine-pale); }
+.sub-indent { padding-left: 24px !important; }
+
+/* WOW TABLE */
+.wow-tbl { width: 100%; border-collapse: collapse; }
+.wow-tbl th, .wow-tbl td { padding: 9px 14px; border: 1px solid var(--border); font-size: 12px; text-align: center; }
+.wow-tbl th { background: var(--mist); font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .05em; }
+.wow-tbl td:first-child { text-align: left; font-weight: 500; }
+.pos { color: var(--green); font-weight: 600; }
+.neg { color: #991b1b; font-weight: 600; }
 
 /* PACING */
-.pacing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.pacing-city-card { background: var(--bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.pacing-city-name { font-size: 14px; color: var(--cw); font-weight: bold; margin-bottom: 10px; }
-.pacing-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: var(--muted); }
-.pacing-val { color: var(--text); font-weight: bold; }
-.presale-summary { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+.pacing-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 14px; }
+.pacing-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.pacing-card h4 { font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+.pm { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pm-lbl { font-size: 11px; color: var(--slate); }
+.pm-val { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
 
-/* NEW TOUR FORM */
-.form-wrap { max-width: 700px; margin: 0 auto; padding: 28px; }
-.form-wrap h2 { font-size: 22px; color: var(--cw); margin-bottom: 6px; }
-.form-wrap p  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-.form-section { margin-bottom: 28px; }
-.form-section-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-.form-row.single { grid-template-columns: 1fr; }
+/* BADGES */
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.b-early  { background: #dbeafe; color: #1e40af; }
+.b-late   { background: #ede9fe; color: #5b21b6; }
+.b-solo   { background: #d1fae5; color: #065f46; }
+.b-custom { background: #fef3c7; color: #92400e; }
+
+/* PCT BAR */
+.pct-bar { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.pct-track { width: 64px; height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.pct-fill { height: 100%; border-radius: 99px; background: var(--wine); transition: width .4s; }
+.pct-fill.g { background: var(--green); }
+.pct-num { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; width: 34px; text-align: right; }
+
+/* PILLS */
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+.p-on  { background: #d1fae5; color: #065f46; }
+.p-risk{ background: #fef3c7; color: #92400e; }
+.p-beh { background: #fee2e2; color: #991b1b; }
+.p-sold{ background: #f5f3ff; color: #4c1d95; }
+.p-none{ background: var(--mist); color: var(--slate); border: 1px solid var(--border); }
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
-.form-input {
-  padding: 9px 12px;
-  border: 1px solid var(--border-mid);
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--text);
-  background: var(--bg);
-  transition: border-color 0.15s;
+label { font-size: 12px; font-weight: 600; color: var(--slate); }
+.req { color: var(--wine); margin-left: 2px; }
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 11px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+  transition: border .15s; width: 100%;
 }
-.form-input:focus { outline: none; border-color: var(--cw); }
-.city-caps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-.city-cap-card { background: var(--bg2); border-radius: 8px; padding: 14px; border: 1px solid var(--border); }
-.city-cap-name { font-size: 12px; color: var(--cw); font-weight: bold; margin-bottom: 10px; }
-.form-actions { display: flex; gap: 12px; padding: 20px 0; }
-.btn-primary {
-  background: var(--cw);
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-primary:hover { background: var(--cw-dark); }
-.btn-secondary {
-  background: transparent;
-  color: var(--cw);
-  border: 1px solid var(--border-mid);
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-}
+input:focus, select:focus { outline: none; border-color: var(--wine-light); box-shadow: 0 0 0 3px rgba(123,29,46,.08); }
+
+/* ── MARKET BUILDER ──
+   Single-file, no floating card.
+   Each market = a card with: top row of inputs (inline, fixed columns) + nights below.
+*/
+.mb-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: visible; }
+
+/* Input row — exact same columns as header */
+.mb-cols { display: grid; grid-template-columns: minmax(140px,1.5fr) 90px 90px 105px 105px 32px; gap: 8px; align-items: center; padding: 10px 14px; }
+.mb-header-row { background: var(--mist); border-bottom: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; }
+.mb-header-row span { font-size: 10px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .05em; }
+.mb-input-row { border-bottom: 1px solid var(--border); }
+.mb-input-row input, .mb-input-row select { font-size: 12px; padding: 6px 9px; }
+.mb-rm { background: none; border: none; cursor: pointer; color: #cc3333; font-size: 20px; line-height: 1; opacity: .5; transition: opacity .12s; justify-self: center; }
+.mb-rm:hover { opacity: 1; }
+
+/* Nights section */
+.mb-nights { padding: 10px 14px 12px; background: #fdf8f6; border-radius: 0 0 var(--radius) var(--radius); }
+.nights-lbl { font-size: 11px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.add-night-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--wine); background: none; border: 1px dashed var(--wine-light); border-radius: 5px; padding: 4px 10px; cursor: pointer; transition: all .12s; white-space: nowrap; }
+.add-night-btn:hover { background: var(--wine-pale); }
+
+/* Night card */
+.night-card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
+.night-head { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--mist); border-bottom: 1px solid var(--border); border-radius: 6px 6px 0 0; }
+.night-num { font-size: 11px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .05em; flex-shrink: 0; }
+.night-head input[type="date"] { font-size: 12px; padding: 4px 8px; width: 160px; flex-shrink: 0; }
+.night-head-r { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.rm-night { background: none; border: none; cursor: pointer; color: #cc3333; font-size: 16px; line-height: 1; opacity: .45; transition: opacity .12s; }
+.rm-night:hover { opacity: 1; }
+
+/* Show slots */
+.night-body { padding: 8px 12px 10px; }
+.show-hdr { display: grid; grid-template-columns: 120px 85px 85px 95px 32px; gap: 8px; margin-bottom: 4px; }
+.show-hdr span { font-size: 10px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .05em; }
+.show-slot { display: grid; grid-template-columns: 120px 85px 85px 95px 32px; gap: 8px; align-items: center; margin-bottom: 6px; }
+.show-slot select, .show-slot input { font-size: 12px; padding: 5px 8px; }
+.rm-show { background: none; border: none; cursor: pointer; color: #cc3333; font-size: 15px; line-height: 1; opacity: .4; transition: opacity .12s; justify-self: center; }
+.rm-show:hover { opacity: 1; }
+.add-show-link { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--wine); display: inline-flex; align-items: center; gap: 4px; padding: 0; text-decoration: underline; text-underline-offset: 2px; transition: opacity .12s; }
+.add-show-link:hover { opacity: .7; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,20,16,.5); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--white); border-radius: 12px; width: 100%; max-width: 820px; box-shadow: var(--shadow-lg); transform: translateY(-12px); transition: transform .2s; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-hd { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--slate); line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.modal-close:hover { background: var(--mist); }
+.modal-body { padding: 20px 24px; max-height: 72vh; overflow-y: auto; }
+.modal-ft { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* TAG */
+.tag-new { display: inline-block; font-size: 9px; font-weight: 700; background: var(--wine); color: #fff; padding: 1px 5px; border-radius: 3px; letter-spacing: .04em; }
 
 /* TOAST */
-#toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--cw-dark);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s;
-  pointer-events: none;
-  z-index: 999;
-  max-width: 360px;
-}
-#toast.show { opacity: 1; transform: translateY(0); }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 999; transform: translateY(80px); opacity: 0; transition: all .25s; max-width: 320px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--green); }
+.toast.error   { background: #991b1b; }
+
+/* UTIL */
+.hidden { display: none !important; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-left">
-    <div class="cw-wordmark" onclick="goHome()">CITY WINERY</div>
-    <span class="nav-title">Tour Tracker</span>
+<header>
+  <div class="hbrand">
+    <h1>CITY WINERY</h1>
+    <div class="hdiv"></div>
+    <span class="sub">Tour Tracker</span>
   </div>
-  <div class="nav-right">
-    <button class="nav-btn" onclick="document.getElementById('csv-in').click()">⬆ Upload CSV</button>
-    <div class="nav-divider"></div>
-    <button class="nav-btn primary" onclick="saveData()">✓ Save Data</button>
-    <input type="file" id="csv-in" accept=".csv" onchange="handleCSV(event)">
+  <div class="hactions">
+    <button class="btn btn-ghost btn-sm" onclick="triggerCSV()">⬆ Upload CSV</button>
+    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(event)">
+    <button class="btn btn-save btn-sm" onclick="persistData()">✓ Save Data</button>
   </div>
-</nav>
+</header>
 
-<!-- HOME SCREEN -->
-<div id="screen-home">
-  <div class="home-wrap">
-    <div class="section-label">Active Tours</div>
-    <div class="tour-grid" id="tour-grid">
-      <div class="new-card" onclick="showNewTour()">
-        <div class="new-card-icon">＋</div>
-        <div class="new-card-label">New Tour</div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-head">
+      <span class="sb-title">Active Tours</span>
+      <button class="btn btn-primary btn-sm btn-icon" title="New Tour" onclick="openNewTour()">＋</button>
+    </div>
+    <div class="sb-list" id="tourList"></div>
+    <div class="sb-foot">
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="goBack()">← Back</button>
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="showToast('Archive coming soon')">Archive</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🍷</div>
+      <h2>No Tour Selected</h2>
+      <p>Choose a tour from the sidebar or create a new one to get started.</p>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="openNewTour()">＋ New Tour</button>
+    </div>
+    <div id="tourContent" class="hidden"></div>
+  </main>
+</div>
+
+<!-- ══ TOUR MODAL ══ -->
+<div class="modal-overlay" id="tourModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="modalTitle">Add New Tour</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Tour Info -->
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group">
+          <label>Artist Name<span class="req">*</span></label>
+          <input type="text" id="f_artist" placeholder="e.g. Norah Jones">
+        </div>
+        <div class="form-group">
+          <label>Tour Name<span class="req">*</span></label>
+          <input type="text" id="f_tourName" placeholder="e.g. Spring 2025 Tour">
+        </div>
+        <div class="form-group">
+          <label>CSV Keyword</label>
+          <input type="text" id="f_keyword" placeholder="e.g. NORAH">
+        </div>
+        <div class="form-group">
+          <label>Artist Presale Date</label>
+          <input type="date" id="f_presale">
+        </div>
+        <div class="form-group">
+          <label>On-Sale Date</label>
+          <input type="date" id="f_onsale">
+        </div>
       </div>
+
+      <!-- Market Builder -->
+      <div class="sec-title">
+        Markets &amp; Nights
+        <span class="tag-new">MULTI-NIGHT</span>
+      </div>
+      <p style="font-size:12px;color:var(--slate);margin-bottom:14px">
+        Each market supports multiple nights. Each night can have one or two shows (Early / Late or custom).
+      </p>
+
+      <!-- Shared column header — matches .mb-cols exactly -->
+      <div class="mb-cols mb-header-row" style="border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0">
+        <span>Market</span>
+        <span>Sellable Cap</span>
+        <span>Total Cap</span>
+        <span>BE Tickets</span>
+        <span>BE Gross ($)</span>
+        <span></span>
+      </div>
+
+      <!-- Market cards injected here -->
+      <div id="mktCards" style="border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow:hidden"></div>
+
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addMarket()">＋ Add Market</button>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveTour()">Create Tour</button>
     </div>
   </div>
 </div>
 
-<!-- TOUR DASHBOARD SCREEN -->
-<div id="screen-tour">
-  <div class="tour-wrap">
-    <div class="tour-header">
-      <div class="tour-header-left">
-        <h1 id="th-artist"></h1>
-        <p id="th-tourname"></p>
-        <div class="th-sub" id="th-sub"></div>
-      </div>
-      <div class="card-actions">
-        <button class="btn-sm" onclick="goHome()">← Back</button>
-        <button class="btn-sm" onclick="archiveTour()">Archive</button>
-      </div>
-    </div>
-    <div class="tour-tabs">
-      <div class="tab active" onclick="showPane('pane-sales',this)">Ticket Sales</div>
-      <div class="tab" onclick="showPane('pane-shows',this)">By Show</div>
-      <div class="tab" onclick="showPane('pane-wow',this)">Week over Week</div>
-      <div class="tab" onclick="showPane('pane-pacing',this)">Pacing & Goals</div>
-    </div>
-    <div id="pane-sales" class="pane active"></div>
-    <div id="pane-shows" class="pane"></div>
-    <div id="pane-wow"   class="pane"></div>
-    <div id="pane-pacing" class="pane"></div>
-  </div>
-</div>
-
-<!-- NEW TOUR SCREEN -->
-<div id="screen-new">
-  <div class="form-wrap">
-    <h2>Add New Tour</h2>
-    <p>Enter the tour details. You can upload CSVs later to update ticket counts.</p>
-
-    <div class="form-section">
-      <div class="form-section-title">Tour Info</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Artist Name *</label>
-          <input class="form-input" id="f-artist" placeholder="e.g. Lyle Lovett">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tour Name *</label>
-          <input class="form-input" id="f-tourname" placeholder="e.g. City Winery Tour 2026">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">CSV Keyword (for auto-matching)</label>
-          <input class="form-input" id="f-keyword" placeholder="e.g. Lyle_Lovett">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Artist Presale Date</label>
-          <input class="form-input" id="f-presale" type="date">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">On-Sale Date</label>
-          <input class="form-input" id="f-onsale" type="date">
-        </div>
-        <div class="form-group"></div>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">Markets & Capacities</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Enter each market name and its sellable capacity, breakeven tickets, and target gross.</p>
-      <div id="markets-list"></div>
-      <button class="btn-secondary" style="margin-top:10px;" onclick="addMarketRow()">+ Add Market</button>
-    </div>
-
-    <div class="form-actions">
-      <button class="btn-primary" onclick="createTour()">Create Tour</button>
-      <button class="btn-secondary" onclick="goHome()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
+<div class="toast" id="toastEl"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
-// CONFIG
-// ════════════════════════════════════════════════════════
-const DRIVE_URL = 'https://script.google.com/macros/s/AKfycbxLZYQYs_KFYQDp_KaXhbz2vXoqrulBlC8UZp8BVocrrHSwZmsCArFOflweh-G2QSse/exec';
+// ══════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════
+const ALL_MARKETS = [
+  'New York City','Chicago','Nashville','Atlanta',
+  'Boston','Philadelphia','Hudson Valley','St. Louis','Pittsburgh'
+];
 
-// ════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════════════
-let TOURS = {};
+// ══════════════════════════════════════════════════
+let tours        = [];
 let activeTourId = null;
-let wowChart = null;
+let activeTab    = 'sales';
+let editingId    = null;
+let mktData      = [];   // working copy inside modal
 
-// ════════════════════════════════════════════════════════
-// DRIVE SYNC
-// ════════════════════════════════════════════════════════
-async function syncFromDrive() {
-  try {
-    const r = await fetch(DRIVE_URL, { method: 'POST', body: 'READ' });
-    const text = await r.text();
-    const d = JSON.parse(text);
-    if (d && d.tours) {
-      TOURS = d.tours;
-      renderHome();
-      toast('✓ Data loaded from shared Drive');
-    }
-  } catch (e) {
-    console.log('Drive read failed:', e.message);
-  }
+// ══════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  try { const r = localStorage.getItem('cw_v3'); if (r) tours = JSON.parse(r); } catch(e) {}
+  renderSidebar();
+});
+
+// ══════════════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════════════
+function persistData() {
+  localStorage.setItem('cw_v3', JSON.stringify(tours));
+  showToast('Data saved ✓', 'success');
 }
 
-async function syncToDrive() {
-  try {
-    const payload = JSON.stringify({
-      version: 1,
-      updatedAt: new Date().toISOString().slice(0, 10),
-      tours: TOURS
-    });
-    const r = await fetch(DRIVE_URL, { method: 'POST', body: payload });
-    const t = await r.text();
-    if (r.ok && t === 'ok') {
-      toast('✓ Saved to shared Drive — team will see this on refresh');
-    }
-  } catch (e) {
-    console.log('Drive write failed:', e.message);
-  }
-}
-
-// ════════════════════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════════════════════
-function showScreen(id) {
-  ['screen-home','screen-tour','screen-new'].forEach(s => {
-    document.getElementById(s).style.display = s === id ? 'block' : 'none';
-  });
-}
-
-function goHome() {
-  activeTourId = null;
-  if (wowChart) { wowChart.destroy(); wowChart = null; }
-  showScreen('screen-home');
-  renderHome();
-}
-
-function showNewTour() {
-  showScreen('screen-new');
-  document.getElementById('markets-list').innerHTML = '';
-  addMarketRow();
-  addMarketRow();
-}
-
-function openTour(id) {
-  activeTourId = id;
-  showScreen('screen-tour');
-  buildTourDash();
-}
-
-// ════════════════════════════════════════════════════════
-// HOME RENDER
-// ════════════════════════════════════════════════════════
-function renderHome() {
-  const grid = document.getElementById('tour-grid');
-  const tours = Object.values(TOURS).filter(t => !t.archived);
-  grid.innerHTML = tours.map(t => tourCard(t)).join('') +
-    `<div class="new-card" onclick="showNewTour()">
-      <div class="new-card-icon">＋</div>
-      <div class="new-card-label">New Tour</div>
-    </div>`;
-}
-
-function tourCard(tour) {
-  const shows = tour.shows || [];
-  const totalSold = shows.reduce((a, s) => a + (s.count || 0), 0);
-  const totalRev  = shows.reduce((a, s) => a + (s.sales || 0), 0);
-  const caps = tour.caps || {};
-  const cities = Object.keys(caps);
-  const totalSell = cities.reduce((a, c) => a + (caps[c].sell || 0), 0);
-  const pct = totalSell ? Math.round(totalSold / totalSell * 100) : 0;
-  const totalShows = shows.length;
-  const totalMarkets = cities.length;
-
-  const gauges = cities.slice(0, 6).map(city => {
-    const citySold = shows.filter(s => s.city === city).reduce((a, s) => a + (s.count || 0), 0);
-    const cityCap  = caps[city]?.sell || 1;
-    const cityPct  = Math.min(100, Math.round(citySold / cityCap * 100));
-    const short = city.length > 8 ? city.substring(0, 8) : city;
-    return `<div class="gauge-wrap">
-      <div class="gauge-ring" style="--pct:${cityPct}">
-        <span class="gauge-val">${cityPct}%</span>
-      </div>
-      <div class="gauge-city">${short}</div>
-    </div>`;
-  }).join('');
-
-  return `<div class="tour-card" onclick="openTour('${tour.id}')">
-    <div class="card-artist">${tour.artist}</div>
-    <div class="card-tour">${tour.tourName}</div>
-    <div class="card-gauges">${gauges}</div>
-    <div class="card-stats">
-      <div class="stat-box">
-        <div class="stat-label">Tickets Sold</div>
-        <div class="stat-val">${totalSold.toLocaleString()}</div>
-        <div class="stat-sub">${totalMarkets} markets · ${totalShows} shows</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Overall Cap %</div>
-        <div class="stat-val">${pct}%</div>
-        <div class="stat-sub">of ${totalSell.toLocaleString()} sellable</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Gross Revenue</div>
-        <div class="stat-val">$${(totalRev/1000).toFixed(0)}k</div>
-        <div class="stat-sub">from ticketing</div>
-      </div>
-    </div>
-    <div class="card-foot">
-      <span>Updated ${tour.updatedAt || '—'}</span>
-      <div class="card-actions" onclick="event.stopPropagation()">
-        <button class="btn-sm primary" onclick="openTour('${tour.id}')">Open dashboard</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ════════════════════════════════════════════════════════
-// TOUR DASHBOARD
-// ════════════════════════════════════════════════════════
-function showPane(id, el) {
-  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-}
-
-function buildTourDash() {
-  const tour = TOURS[activeTourId];
-  if (!tour) return;
-  document.getElementById('th-artist').textContent = tour.artist;
-  document.getElementById('th-tourname').textContent = tour.tourName;
-  document.getElementById('th-sub').textContent = `Updated ${tour.updatedAt || '—'}`;
-  // Reset tabs
-  document.querySelectorAll('.pane').forEach(p => { p.classList.remove('active'); p.innerHTML = ''; });
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  document.getElementById('pane-sales').classList.add('active');
-  buildSales(tour);
-  buildByShow(tour);
-  buildWoW(tour);
-  buildPacing(tour);
-}
-
-function buildSales(tour) {
-  const shows = tour.shows || [];
-  const caps  = tour.caps || {};
-  const cities = Object.keys(caps);
-  const totalSold = shows.reduce((a,s) => a + (s.count||0), 0);
-  const totalRev  = shows.reduce((a,s) => a + (s.sales||0), 0);
-  const totalSell = cities.reduce((a,c) => a + (caps[c].sell||0), 0);
-  const totalBE   = cities.reduce((a,c) => a + (caps[c].beTickets||0), 0);
-  const totalBEG  = cities.reduce((a,c) => a + (caps[c].beGross||0), 0);
-  const totalPot  = cities.reduce((a,c) => a + (caps[c].potGross||0), 0);
-  const bePct  = totalBE   ? Math.round(totalSold/totalBE*100)  : 0;
-  const beGPct = totalBEG  ? Math.round(totalRev/totalBEG*100)  : 0;
-  const potPct = totalPot  ? Math.round(totalRev/totalPot*100)  : 0;
-
-  document.getElementById('pane-sales').innerHTML = `
-    <div class="snapshot-grid">
-      <div class="snap-box">
-        <div class="snap-label">Tickets Sold</div>
-        <div class="snap-val">${totalSold.toLocaleString()}</div>
-        <div class="snap-sub">${cities.length} markets · ${shows.length} shows</div>
-      </div>
-      <div class="snap-box">
-        <div class="snap-label">Gross Revenue</div>
-        <div class="snap-val">$${totalRev.toLocaleString()}</div>
-        <div class="snap-sub">from ticketing system</div>
-      </div>
-      <div class="snap-box">
-        <div class="snap-label">Sellable Capacity</div>
-        <div class="snap-val">${totalSell.toLocaleString()}</div>
-        <div class="snap-sub">all shows combined</div>
-      </div>
-      <div class="snap-box">
-        <div class="snap-label">% to Sellable Cap</div>
-        <div class="snap-val">${totalSell ? Math.round(totalSold/totalSell*100) : 0}%</div>
-        <div class="snap-sub">overall</div>
-      </div>
-      ${totalBE ? `<div class="snap-box">
-        <div class="snap-label">Breakeven Tickets</div>
-        <div class="snap-val">${totalBE.toLocaleString()}</div>
-        <div class="snap-sub">${totalSold.toLocaleString()} sold · ${Math.max(0,totalBE-totalSold).toLocaleString()} to go</div>
-      </div>` : ''}
-      ${totalBEG ? `<div class="snap-box">
-        <div class="snap-label">Breakeven Gross</div>
-        <div class="snap-val">$${totalBEG.toLocaleString()}</div>
-        <div class="snap-sub">$${totalRev.toLocaleString()} earned</div>
-      </div>` : ''}
-      ${totalPot ? `<div class="snap-box">
-        <div class="snap-label">Tour Potential Gross</div>
-        <div class="snap-val">$${totalPot.toLocaleString()}</div>
-        <div class="snap-sub">${potPct}% achieved</div>
-      </div>` : ''}
-    </div>
-    ${totalBE ? `<div class="progress-section">
-      <div class="progress-label"><span>Tickets vs Breakeven (${totalSold.toLocaleString()} of ${totalBE.toLocaleString()})</span><span>${bePct}%</span></div>
-      <div class="progress-track"><div class="progress-fill ${bePct>=100?'green':bePct>=70?'cw':'amber'}" style="width:${Math.min(100,bePct)}%"></div></div>
-      ${totalBEG ? `<div class="progress-label"><span>Gross vs Breakeven ($${totalRev.toLocaleString()} of $${totalBEG.toLocaleString()})</span><span>${beGPct}%</span></div>
-      <div class="progress-track"><div class="progress-fill ${beGPct>=100?'green':beGPct>=70?'cw':'amber'}" style="width:${Math.min(100,beGPct)}%"></div></div>` : ''}
-      ${totalPot ? `<div class="progress-label"><span>Gross vs Potential ($${totalRev.toLocaleString()} of $${totalPot.toLocaleString()})</span><span>${potPct}%</span></div>
-      <div class="progress-track"><div class="progress-fill cw" style="width:${Math.min(100,potPct)}%"></div></div>` : ''}
-    </div>` : ''}
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
-      ${cities.map(city => {
-        const sold = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.count||0),0);
-        const rev  = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.sales||0),0);
-        const cap  = caps[city];
-        const pct  = cap?.sell ? Math.round(sold/cap.sell*100) : 0;
-        return `<div class="snap-box">
-          <div class="snap-label">${city}</div>
-          <div class="snap-val" style="font-size:20px">${pct}%</div>
-          <div class="snap-sub">${sold.toLocaleString()} of ${(cap?.sell||0).toLocaleString()} sellable</div>
-          ${cap?.beTickets ? `<div class="snap-sub">BE: ${cap.beTickets.toLocaleString()} tkts</div>` : ''}
-          ${rev ? `<div class="snap-sub">$${rev.toLocaleString()}</div>` : ''}
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-function buildByShow(tour) {
-  const shows = (tour.shows || []).slice().sort((a,b) => a.date.localeCompare(b.date));
-  document.getElementById('pane-shows').innerHTML = shows.length ? `
-    <table class="shows-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>City</th>
-          <th>Tickets Sold</th>
-          <th>Gross Revenue</th>
-          <th>Cap %</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${shows.map(s => {
-          const cap = tour.caps?.[s.city]?.sell || 0;
-          const pct = cap ? Math.round((s.count||0)/cap*100) : 0;
-          return `<tr>
-            <td>${s.date}</td>
-            <td><span class="city-badge">${s.city}</span></td>
-            <td>${(s.count||0).toLocaleString()}</td>
-            <td>${s.sales ? '$'+s.sales.toLocaleString() : '—'}</td>
-            <td>${cap ? pct+'%' : '—'}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>` : '<p style="color:var(--muted);padding:20px;">No show data yet. Upload a CSV to get started.</p>';
-}
-
-function buildWoW(tour) {
-  const snaps = tour.wowSnapshots || [];
-  if (!snaps.length) {
-    document.getElementById('pane-wow').innerHTML = '<p style="color:var(--muted);padding:20px;">No week-over-week data yet. Data is captured automatically each time you upload a CSV.</p>';
+// ══════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════
+function renderSidebar() {
+  const el = document.getElementById('tourList');
+  if (!tours.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--slate);font-size:12px">No tours yet</div>';
     return;
   }
-  const labels = snaps.map(s => s.uploadedAt);
-  const cities = Object.keys(snaps[0].totals || {});
-  const colors = ['#6B1A3A','#9B4060','#C97090','#2E7D32','#1565C0','#E65100','#6A1B9A','#00695C'];
-  const datasets = cities.map((city,i) => ({
-    label: city,
-    data: snaps.map(s => s.totals[city] || 0),
-    borderColor: colors[i % colors.length],
-    backgroundColor: colors[i % colors.length] + '20',
-    tension: 0.3,
-    fill: false,
-  }));
-  if (wowChart) wowChart.destroy();
-  document.getElementById('pane-wow').innerHTML = '<div class="wow-chart-wrap"><canvas id="wow-canvas" height="300"></canvas></div>';
-  wowChart = new Chart(document.getElementById('wow-canvas'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom' } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-        x: { grid: { display: false } }
+  el.innerHTML = tours.map(t => `
+    <div class="sb-item${t.id===activeTourId?' active':''}" onclick="selectTour('${t.id}')">
+      <div>
+        <div class="sb-name">${t.artist}</div>
+        <div class="sb-sub">${t.tourName} · ${t.markets.length} mkt${t.markets.length!==1?'s':''}</div>
+      </div>
+      <span class="sb-arr">›</span>
+    </div>`).join('');
+}
+
+function selectTour(id) {
+  activeTourId = id; activeTab = 'sales';
+  renderSidebar(); renderTour();
+}
+function goBack() {
+  activeTourId = null; renderSidebar();
+  document.getElementById('emptyState').classList.remove('hidden');
+  document.getElementById('tourContent').classList.add('hidden');
+}
+
+// ══════════════════════════════════════════════════
+// TOUR DISPLAY
+// ══════════════════════════════════════════════════
+function renderTour() {
+  const tour = tours.find(t => t.id === activeTourId);
+  if (!tour) { goBack(); return; }
+
+  document.getElementById('emptyState').classList.add('hidden');
+  const c = document.getElementById('tourContent');
+  c.classList.remove('hidden');
+
+  const shows     = flatShows(tour);
+  const totalCap  = shows.reduce((s,sh) => s+sh.cap, 0);
+  const totalSold = shows.reduce((s,sh) => s+sh.sold, 0);
+  const pct       = totalCap ? Math.round(totalSold/totalCap*100) : 0;
+
+  c.innerHTML = `
+    <div class="pg-head">
+      <div class="pg-head-l">
+        <h2>${tour.artist}</h2>
+        <p>${tour.tourName} · ${tour.markets.length} market${tour.markets.length!==1?'s':''} · ${shows.length} show${shows.length!==1?'s':''}</p>
+      </div>
+      <div class="pg-head-r">
+        <button class="btn btn-secondary btn-sm" onclick="openEditTour('${tour.id}')">✏ Edit Tour</button>
+        <button class="btn btn-secondary btn-sm" onclick="triggerCSV()">⬆ CSV</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab${activeTab==='sales'?' active':''}"   onclick="switchTab('sales')">Ticket Sales</div>
+      <div class="tab${activeTab==='show'?' active':''}"    onclick="switchTab('show')">By Show</div>
+      <div class="tab${activeTab==='wow'?' active':''}"     onclick="switchTab('wow')">Week over Week</div>
+      <div class="tab${activeTab==='pacing'?' active':''}"  onclick="switchTab('pacing')">Pacing &amp; Goals</div>
+    </div>
+    <div class="tab-content">
+      <div class="tab-panel${activeTab==='sales'?' active':''}"   id="p_sales">${panelSales(tour,shows,totalCap,totalSold,pct)}</div>
+      <div class="tab-panel${activeTab==='show'?' active':''}"    id="p_show">${panelByShow(shows)}</div>
+      <div class="tab-panel${activeTab==='wow'?' active':''}"     id="p_wow">${panelWoW(tour)}</div>
+      <div class="tab-panel${activeTab==='pacing'?' active':''}"  id="p_pacing">${panelPacing(tour)}</div>
+    </div>`;
+}
+
+function switchTab(t) { activeTab = t; renderTour(); }
+
+// ══════════════════════════════════════════════════
+// DATA HELPERS
+// ══════════════════════════════════════════════════
+function flatShows(tour) {
+  const out = [];
+  for (const m of tour.markets) {
+    const nights = m.nights || [];
+    if (!nights.length) {
+      out.push({ market:m.market, date:'—', type:'Solo', time:'Solo',
+                 cap:+(m.capacity||0), sold:+(m.sold||0), price:+(m.ticketPrice||0) });
+    } else {
+      for (const n of nights) {
+        for (const sh of (n.shows||[])) {
+          out.push({ market:m.market, date:n.date||'—', type:sh.type||'Solo',
+                     time:sh.time||sh.type||'Show',
+                     cap:+(sh.cap||m.capacity||0), sold:+(sh.sold||0), price:+(sh.price||m.ticketPrice||0) });
+        }
       }
     }
-  });
+  }
+  return out;
 }
 
-function buildPacing(tour) {
-  const shows = tour.shows || [];
-  const caps  = tour.caps  || {};
-  const cities = Object.keys(caps);
-  if (!cities.length) {
-    document.getElementById('pane-pacing').innerHTML = '<p style="color:var(--muted);padding:20px;">No markets configured for this tour.</p>';
+function badge(type) {
+  const map = { Early:'b-early', Late:'b-late', Solo:'b-solo' };
+  return `<span class="badge ${map[type]||'b-custom'}">${type}</span>`;
+}
+function pctBar(p) {
+  return `<div class="pct-bar"><div class="pct-track"><div class="pct-fill${p>=80?' g':''}" style="width:${Math.min(p,100)}%"></div></div><span class="pct-num">${p}%</span></div>`;
+}
+function pill(p, cap) {
+  if (!cap) return `<span class="pill p-none">No data</span>`;
+  if (p>=100) return `<span class="pill p-sold">Sold Out</span>`;
+  if (p>=80)  return `<span class="pill p-on">On Track</span>`;
+  if (p>=50)  return `<span class="pill p-risk">At Risk</span>`;
+  return `<span class="pill p-beh">Behind</span>`;
+}
+function noRow(n) { return `<tr><td colspan="${n}" style="text-align:center;padding:24px;color:var(--slate)">No data yet</td></tr>`; }
+
+// ══════════════════════════════════════════════════
+// PANELS
+// ══════════════════════════════════════════════════
+function panelSales(tour, shows, totalCap, totalSold, pct) {
+  let rows = '';
+  for (const m of tour.markets) {
+    const mShows = shows.filter(s => s.market===m.market);
+    const mSold  = mShows.reduce((s,sh)=>s+sh.sold,0);
+    const mCap   = mShows.reduce((s,sh)=>s+sh.cap,0);
+    const mGross = mShows.reduce((s,sh)=>s+(sh.sold*sh.price),0);
+    const mPct   = mCap ? Math.round(mSold/mCap*100) : 0;
+    const multi  = mShows.length > 1;
+    const nights = m.nights||[];
+
+    rows += `<tr>
+      <td><strong>${m.market}</strong><span style="font-size:11px;color:var(--slate);margin-left:8px">${nights.length>1?nights.length+' nights':''}${multi?' · '+mShows.length+' shows':''}</span></td>
+      <td class="r">${mCap||'—'}</td>
+      <td class="r">${mSold}</td>
+      <td class="r">${mCap?(mCap-mSold):'—'}</td>
+      <td class="r">${mCap?pctBar(mPct):'—'}</td>
+      <td class="r">${mGross?'$'+mGross.toLocaleString():'—'}</td>
+      <td class="r">${nights.length>1?nights.length+' nights':(mShows[0]?.date||'—')}</td>
+      <td>${pill(mPct,mCap)}</td>
+    </tr>`;
+
+    if (multi) {
+      for (const sh of mShows) {
+        const sp = sh.cap ? Math.round(sh.sold/sh.cap*100) : 0;
+        rows += `<tr class="sub">
+          <td class="sub-indent" style="font-size:12px;color:var(--slate)">${badge(sh.type)} ${sh.time} <span style="margin-left:6px;font-size:11px">${sh.date}</span></td>
+          <td class="r">${sh.cap||'—'}</td>
+          <td class="r">${sh.sold}</td>
+          <td class="r">${sh.cap?(sh.cap-sh.sold):'—'}</td>
+          <td class="r">${sh.cap?pctBar(sp):'—'}</td>
+          <td class="r">${sh.price?'$'+(sh.sold*sh.price).toLocaleString():'—'}</td>
+          <td class="r">${sh.date}</td>
+          <td>${pill(sp,sh.cap)}</td>
+        </tr>`;
+      }
+    }
+  }
+
+  return `<div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Capacity</div><div class="stat-value">${totalCap.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Tickets Sold</div><div class="stat-value">${totalSold.toLocaleString()}</div><div class="stat-sub">${pct}% sold</div></div>
+    <div class="stat-card"><div class="stat-label">Remaining</div><div class="stat-value">${(totalCap-totalSold).toLocaleString()}</div></div>
+    <div class="stat-card"><div class="stat-label">Shows</div><div class="stat-value">${shows.length}</div></div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Market</th><th class="r">Capacity</th><th class="r">Sold</th><th class="r">Avail</th><th class="r">% Sold</th><th class="r">Gross</th><th class="r">Date(s)</th><th>Status</th></tr></thead>
+    <tbody>${rows||noRow(8)}</tbody>
+  </table></div>`;
+}
+
+function panelByShow(shows) {
+  const rows = shows.map(sh => {
+    const p = sh.cap ? Math.round(sh.sold/sh.cap*100) : 0;
+    return `<tr>
+      <td><strong>${sh.market}</strong></td>
+      <td>${sh.date}</td>
+      <td>${badge(sh.type)} ${sh.time}</td>
+      <td class="r">${sh.cap||'—'}</td>
+      <td class="r">${sh.sold}</td>
+      <td class="r">${sh.cap?pctBar(p):'—'}</td>
+      <td class="r">${sh.price?'$'+(sh.sold*sh.price).toLocaleString():'—'}</td>
+      <td>${pill(p,sh.cap)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Market</th><th>Date</th><th>Show</th><th class="r">Cap</th><th class="r">Sold</th><th class="r">% Sold</th><th class="r">Gross</th><th>Status</th></tr></thead>
+    <tbody>${rows||noRow(8)}</tbody>
+  </table></div>`;
+}
+
+function panelWoW(tour) {
+  const rows = tour.markets.map(m => {
+    const nights = m.nights||[];
+    let curr=0, prev=0;
+    for (const n of nights) for (const sh of (n.shows||[])) { curr+=+(sh.sold||0); prev+=+(sh.prevSold||sh.sold||0); }
+    if (!nights.length) { curr=+(m.sold||0); prev=+(m.prevSold||m.sold||0); }
+    const d=curr-prev, p=prev?Math.round(d/prev*100):0;
+    return `<tr><td>${m.market}</td><td>${prev}</td><td>${curr}</td><td class="${d>=0?'pos':'neg'}">${d>=0?'+':''}${d}</td><td class="${p>=0?'pos':'neg'}">${p>=0?'+':''}${p}%</td></tr>`;
+  }).join('');
+  return `<div class="tbl-wrap"><table class="wow-tbl">
+    <thead><tr><th style="text-align:left">Market</th><th>Last Week</th><th>This Week</th><th>Δ Tickets</th><th>Δ %</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function panelPacing(tour) {
+  const cards = tour.markets.map(m => {
+    const nights = m.nights||[];
+    let sold=0,cap=0,gross=0;
+    for (const n of nights) for (const sh of (n.shows||[])) { sold+=+(sh.sold||0); cap+=+(sh.cap||m.capacity||0); gross+=+(sh.sold||0)*+(sh.price||0); }
+    if (!nights.length) { sold=+(m.sold||0); cap=+(m.capacity||0); gross=sold*+(m.ticketPrice||0); }
+    const p = cap?Math.round(sold/cap*100):0;
+    return `<div class="pacing-card">
+      <h4>${m.market}</h4>
+      <div class="pct-track" style="width:100%;height:6px;margin-bottom:12px"><div class="pct-fill${p>=80?' g':''}" style="width:${Math.min(p,100)}%"></div></div>
+      <div class="pm"><span class="pm-lbl">Sold / Cap</span><span class="pm-val">${sold.toLocaleString()} / ${cap.toLocaleString()} (${p}%)</span></div>
+      ${m.beTickets?`<div class="pm"><span class="pm-lbl">BE Tickets</span><span class="pm-val" style="color:${sold>=+m.beTickets?'var(--green)':'var(--amber)'}">${(+m.beTickets).toLocaleString()}</span></div>`:''}
+      ${m.beGross?`<div class="pm"><span class="pm-lbl">BE Gross</span><span class="pm-val" style="color:${gross>=+m.beGross?'var(--green)':'var(--amber)'}">$${(+m.beGross).toLocaleString()}</span></div>`:''}
+      <div class="pm"><span class="pm-lbl">Current Gross</span><span class="pm-val">$${gross.toLocaleString()}</span></div>
+      <div style="margin-top:8px">${pill(p,cap)}</div>
+    </div>`;
+  }).join('');
+  return `<div class="pacing-grid">${cards}</div>`;
+}
+
+// ══════════════════════════════════════════════════
+// MODAL — NEW / EDIT
+// ══════════════════════════════════════════════════
+function openNewTour() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Add New Tour';
+  document.getElementById('modalSaveBtn').textContent = 'Create Tour';
+  ['f_artist','f_tourName','f_keyword','f_presale','f_onsale'].forEach(id => document.getElementById(id).value='');
+  mktData = [];
+  renderMktCards();
+  document.getElementById('tourModal').classList.add('open');
+}
+
+function openEditTour(id) {
+  const t = tours.find(x=>x.id===id); if (!t) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Tour';
+  document.getElementById('modalSaveBtn').textContent = 'Save Changes';
+  document.getElementById('f_artist').value   = t.artist||'';
+  document.getElementById('f_tourName').value = t.tourName||'';
+  document.getElementById('f_keyword').value  = t.keyword||'';
+  document.getElementById('f_presale').value  = t.presale||'';
+  document.getElementById('f_onsale').value   = t.onsale||'';
+  mktData = JSON.parse(JSON.stringify(t.markets));
+  renderMktCards();
+  document.getElementById('tourModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('tourModal').classList.remove('open'); }
+
+function saveTour() {
+  const artist   = document.getElementById('f_artist').value.trim();
+  const tourName = document.getElementById('f_tourName').value.trim();
+  if (!artist||!tourName) { showToast('Artist and Tour Name required','error'); return; }
+  if (!mktData.length)    { showToast('Add at least one market','error'); return; }
+
+  const data = {
+    id:      editingId||'t_'+Date.now(),
+    artist, tourName,
+    keyword: document.getElementById('f_keyword').value.trim(),
+    presale: document.getElementById('f_presale').value,
+    onsale:  document.getElementById('f_onsale').value,
+    markets: JSON.parse(JSON.stringify(mktData)),
+  };
+
+  if (editingId) {
+    tours[tours.findIndex(t=>t.id===editingId)] = data;
+  } else {
+    tours.push(data);
+  }
+
+  persistData();
+  closeModal();
+  activeTourId = data.id;
+  renderSidebar();
+  renderTour();
+  showToast(editingId?'Tour updated ✓':'Tour created ✓','success');
+}
+
+// ── Market card rendering ──
+function renderMktCards() {
+  const el = document.getElementById('mktCards');
+  if (!mktData.length) {
+    el.innerHTML = '<div style="padding:16px;text-align:center;font-size:12px;color:var(--slate)">No markets added yet</div>';
     return;
   }
-  document.getElementById('pane-pacing').innerHTML = `<div class="pacing-grid">
-    ${cities.map(city => {
-      const sold = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.count||0),0);
-      const rev  = shows.filter(s=>s.city===city).reduce((a,s)=>a+(s.sales||0),0);
-      const cap  = caps[city] || {};
-      const pct  = cap.sell ? Math.round(sold/cap.sell*100) : 0;
-      const bePct = cap.beTickets ? Math.round(sold/cap.beTickets*100) : 0;
-      return `<div class="pacing-city-card">
-        <div class="pacing-city-name">${city}</div>
-        <div class="pacing-row"><span>Sold</span><span class="pacing-val">${sold.toLocaleString()}</span></div>
-        <div class="pacing-row"><span>Sellable Cap</span><span class="pacing-val">${(cap.sell||0).toLocaleString()} (${pct}%)</span></div>
-        ${cap.beTickets ? `<div class="pacing-row"><span>Breakeven Tkts</span><span class="pacing-val">${cap.beTickets.toLocaleString()} (${bePct}%)</span></div>` : ''}
-        ${cap.beGross   ? `<div class="pacing-row"><span>Breakeven Gross</span><span class="pacing-val">$${cap.beGross.toLocaleString()}</span></div>` : ''}
-        ${cap.potGross  ? `<div class="pacing-row"><span>Potential Gross</span><span class="pacing-val">$${cap.potGross.toLocaleString()}</span></div>` : ''}
-        ${rev ? `<div class="pacing-row"><span>Revenue</span><span class="pacing-val">$${rev.toLocaleString()}</span></div>` : ''}
-        <div class="progress-track" style="margin-top:10px">
-          <div class="progress-fill ${pct>=100?'green':pct>=70?'cw':'amber'}" style="width:${Math.min(100,pct)}%"></div>
-        </div>
-      </div>`;
-    }).join('')}
+  el.innerHTML = mktData.map((m,mi) => renderMktCard(m,mi)).join('');
+}
+
+function renderMktCard(m, mi) {
+  const nightsHtml = (m.nights||[]).map((n,ni) => renderNightCard(m,mi,n,ni)).join('');
+  return `<div style="border-bottom:1px solid var(--border)">
+    <!-- Input row — columns match header exactly -->
+    <div class="mb-cols mb-input-row">
+      <select onchange="mkField(${mi},'market',this.value)">
+        <option value="">— Market —</option>
+        ${ALL_MARKETS.map(mk=>`<option${mk===m.market?' selected':''}>${mk}</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Sellable" value="${m.capacity||''}" onchange="mkField(${mi},'capacity',this.value)">
+      <input type="number" placeholder="Total"    value="${m.totalCap||''}" onchange="mkField(${mi},'totalCap',this.value)">
+      <input type="number" placeholder="Tix"      value="${m.beTickets||''}" onchange="mkField(${mi},'beTickets',this.value)">
+      <input type="number" placeholder="Gross $"  value="${m.beGross||''}" onchange="mkField(${mi},'beGross',this.value)">
+      <button class="mb-rm" onclick="removeMkt(${mi})" title="Remove">×</button>
+    </div>
+    <!-- Nights -->
+    <div class="mb-nights">
+      <div class="nights-lbl">
+        Nights
+        <button class="add-night-btn" onclick="addNight(${mi})">＋ Add Night</button>
+      </div>
+      <div id="nights_${mi}">
+        ${nightsHtml || '<p style="font-size:12px;color:var(--slate)">No nights added — click Add Night above.</p>'}
+      </div>
+    </div>
   </div>`;
 }
 
-// ════════════════════════════════════════════════════════
-// NEW TOUR FORM
-// ════════════════════════════════════════════════════════
-function addMarketRow() {
-  const list = document.getElementById('markets-list');
-  const idx = list.children.length;
-  const div = document.createElement('div');
-  div.className = 'city-cap-card';
-  div.style.marginBottom = '12px';
-  div.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <input class="form-input" placeholder="Market name (e.g. Chicago)" style="flex:1;margin-right:8px;" data-field="city">
-      <button onclick="this.closest('.city-cap-card').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">✕</button>
+function renderNightCard(m, mi, n, ni) {
+  const shows = n.shows||[];
+  const canAdd = shows.length < 2;
+  const showRows = shows.map((sh,si) => renderShowSlot(mi,ni,sh,si)).join('');
+  return `<div class="night-card">
+    <div class="night-head">
+      <span class="night-num">Night ${ni+1}</span>
+      <input type="date" value="${n.date||''}" onchange="nightField(${mi},${ni},'date',this.value)">
+      <div class="night-head-r">
+        ${canAdd?`<button class="add-show-link" onclick="addShow(${mi},${ni})">＋ ${shows.length?'2nd Show':'Add Show'}</button>`:''}
+        <button class="rm-night" onclick="removeNight(${mi},${ni})" title="Remove night">×</button>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div class="form-group">
-        <label class="form-label">Sellable Cap</label>
-        <input class="form-input" type="number" placeholder="e.g. 280" data-field="sell">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Total Cap</label>
-        <input class="form-input" type="number" placeholder="e.g. 310" data-field="total">
-      </div>
-      <div class="form-group">
-        <label class="form-label">BE Tickets</label>
-        <input class="form-input" type="number" placeholder="e.g. 390" data-field="beTickets">
-      </div>
-      <div class="form-group">
-        <label class="form-label">BE Gross ($)</label>
-        <input class="form-input" type="number" placeholder="e.g. 67000" data-field="beGross">
-      </div>
-      <div class="form-group" style="grid-column:1/-1">
-        <label class="form-label">Potential Gross ($)</label>
-        <input class="form-input" type="number" placeholder="e.g. 140000" data-field="potGross">
-      </div>
-    </div>`;
-  list.appendChild(div);
+    <div class="night-body">
+      ${shows.length?`<div class="show-hdr"><span>Type / Time</span><span>Sellable Cap</span><span>Sold</span><span>Ticket Price</span><span></span></div>`:''}
+      <div id="shows_${mi}_${ni}">${showRows}</div>
+    </div>
+  </div>`;
 }
 
-function createTour() {
-  const artist   = document.getElementById('f-artist').value.trim();
-  const tourName = document.getElementById('f-tourname').value.trim();
-  if (!artist || !tourName) { toast('Please enter artist name and tour name'); return; }
-
-  const keyword = document.getElementById('f-keyword').value.trim() || artist.replace(/\s+/g,'_');
-  const presale = document.getElementById('f-presale').value;
-  const onsale  = document.getElementById('f-onsale').value;
-
-  const caps = {};
-  document.querySelectorAll('#markets-list .city-cap-card').forEach(card => {
-    const city = card.querySelector('[data-field="city"]').value.trim();
-    if (!city) return;
-    caps[city] = {
-      sell:       parseInt(card.querySelector('[data-field="sell"]').value) || 0,
-      total:      parseInt(card.querySelector('[data-field="total"]').value) || 0,
-      beTickets:  parseInt(card.querySelector('[data-field="beTickets"]').value) || 0,
-      beGross:    parseInt(card.querySelector('[data-field="beGross"]').value) || 0,
-      potGross:   parseInt(card.querySelector('[data-field="potGross"]').value) || 0,
-    };
-  });
-
-  const id = artist.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + new Date().getFullYear();
-  TOURS[id] = {
-    id, artist, tourName, keyword,
-    status: 'active',
-    archived: false,
-    updatedAt: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),
-    presaleDate: presale,
-    onsaleDate: onsale,
-    caps,
-    shows: [],
-    wowSnapshots: [],
-    presaleSnapshot: null,
-    presaleLockedAt: null,
-  };
-
-  syncToDrive();
-  toast(`✓ ${artist} tour created`);
-  goHome();
+function renderShowSlot(mi, ni, sh, si) {
+  return `<div class="show-slot">
+    <select onchange="showField(${mi},${ni},${si},'type',this.value)">
+      ${['Early','Late','Solo','Custom'].map(t=>`<option${t===sh.type?' selected':''}>${t}</option>`).join('')}
+    </select>
+    <input type="number" placeholder="Cap"    value="${sh.cap  ||''}" onchange="showField(${mi},${ni},${si},'cap',this.value)">
+    <input type="number" placeholder="Sold"   value="${sh.sold ||''}" onchange="showField(${mi},${ni},${si},'sold',this.value)">
+    <input type="number" placeholder="Price"  value="${sh.price||''}" onchange="showField(${mi},${ni},${si},'price',this.value)">
+    <button class="rm-show" onclick="removeShow(${mi},${ni},${si})" title="Remove show">×</button>
+  </div>`;
 }
 
-// ════════════════════════════════════════════════════════
-// CSV UPLOAD
-// ════════════════════════════════════════════════════════
+// ── Modal data mutations ──
+function mkField(mi,k,v)           { mktData[mi][k]=v; }
+function nightField(mi,ni,k,v)     { mktData[mi].nights[ni][k]=v; }
+function showField(mi,ni,si,k,v)   { mktData[mi].nights[ni].shows[si][k]=v; }
+
+function addMarket() {
+  mktData.push({ market:'', capacity:'', totalCap:'', beTickets:'', beGross:'', nights:[] });
+  renderMktCards();
+}
+function removeMkt(mi)   { mktData.splice(mi,1); renderMktCards(); }
+
+function addNight(mi) {
+  if (!mktData[mi].nights) mktData[mi].nights=[];
+  mktData[mi].nights.push({ date:'', shows:[ {type:'Solo',cap:'',sold:'',price:''} ] });
+  renderMktCards();
+}
+function removeNight(mi,ni)   { mktData[mi].nights.splice(ni,1); renderMktCards(); }
+
+function addShow(mi,ni) {
+  const n = mktData[mi].nights[ni];
+  if (!n.shows) n.shows=[];
+  if (n.shows.length>=2) return;
+  // Auto-upgrade existing Solo → Early if adding a second
+  if (n.shows.length===1 && n.shows[0].type==='Solo') n.shows[0].type='Early';
+  const type = n.shows.length===0?'Early':'Late';
+  n.shows.push({type, cap:'',sold:'',price:''});
+  renderMktCards();
+}
+function removeShow(mi,ni,si) { mktData[mi].nights[ni].shows.splice(si,1); renderMktCards(); }
+
+// ══════════════════════════════════════════════════
+// CSV
+// ══════════════════════════════════════════════════
+function triggerCSV() { document.getElementById('csvInput').click(); }
 function handleCSV(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const shows = parseCSV(ev.target.result);
-    if (!shows) { toast('⚠ Could not parse CSV — check column names'); return; }
-
-    // Match tour by keyword or artist name
-    const filename = file.name;
-    const tour = Object.values(TOURS).find(t =>
-      !t.archived && (
-        filename.toLowerCase().includes((t.keyword||'').toLowerCase()) ||
-        filename.toLowerCase().includes(t.artist.toLowerCase().replace(/\s+/g,'_')) ||
-        filename.toLowerCase().includes(t.artist.toLowerCase().replace(/\s+/g,' '))
-      )
-    ) || (activeTourId ? TOURS[activeTourId] : null);
-
-    if (!tour) {
-      toast('⚠ Could not match CSV to a tour. Open a tour first, then upload.');
-      return;
-    }
-
-    // Save WoW snapshot
-    const totals = {};
-    shows.forEach(s => { totals[s.city] = (totals[s.city]||0) + (s.count||0); });
-    const uploadDate = new Date().toISOString().slice(0,10);
-    if (!tour.wowSnapshots) tour.wowSnapshots = [];
-    // Only add if date is new
-    if (!tour.wowSnapshots.find(w => w.uploadDate === uploadDate)) {
-      tour.wowSnapshots.push({ uploadDate, uploadedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), totals });
-    }
-
-    tour.shows = shows;
-    tour.updatedAt = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-
-    // Rebuild dash if viewing this tour
-    if (activeTourId === tour.id) buildTourDash();
-    else renderHome();
-
-    syncToDrive();
-    toast(`✓ ${tour.artist} updated with ${shows.length} records from ${file.name}`);
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+  const f=e.target.files[0]; if(!f) return;
+  showToast('CSV parsing coming soon','success');
+  e.target.value='';
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) return null;
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
-  const dateIdx  = headers.findIndex(h => h.includes('event start') || h.includes('date'));
-  const cityIdx  = headers.findIndex(h => h.includes('location') || h.includes('city'));
-  const countIdx = headers.findIndex(h => h === 'count' || h.includes('ticket'));
-  const salesIdx = headers.findIndex(h => h === 'sales' || h.includes('revenue') || h.includes('gross'));
-  if (dateIdx < 0 || cityIdx < 0 || countIdx < 0) return null;
-
-  const shows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
-    if (!cols[dateIdx]) continue;
-    const rawDate = cols[dateIdx];
-    let date = rawDate;
-    // Convert MM/DD/YYYY to YYYY-MM-DD
-    const m = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (m) date = `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
-    shows.push({
-      date,
-      city: cols[cityIdx] || '',
-      count: parseInt(cols[countIdx]) || 0,
-      sales: salesIdx >= 0 ? parseInt(cols[salesIdx]) || 0 : 0,
-    });
-  }
-  return shows.length ? shows : null;
-}
-
-// ════════════════════════════════════════════════════════
-// SAVE DATA
-// ════════════════════════════════════════════════════════
-function saveData() {
-  syncToDrive();
-}
-
-// ════════════════════════════════════════════════════════
-// ARCHIVE
-// ════════════════════════════════════════════════════════
-function archiveTour() {
-  if (!activeTourId) return;
-  if (!confirm(`Archive ${TOURS[activeTourId].artist}? It will be hidden from the home screen.`)) return;
-  TOURS[activeTourId].archived = true;
-  syncToDrive();
-  toast(`${TOURS[activeTourId].artist} archived`);
-  goHome();
-}
-
-// ════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // TOAST
-// ════════════════════════════════════════════════════════
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3500);
+// ══════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='') {
+  const el=document.getElementById('toastEl');
+  el.textContent=msg;
+  el.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
 }
-
-// ════════════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════════════
-goHome();
-syncFromDrive();
 </script>
 </body>
 </html>
