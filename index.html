@@ -120,7 +120,6 @@ body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(-
 .archived-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 14px; }
 
 /* ── TOUR VIEW ── */
-.tour-view { display: none; }
 .tour-header {
   background: var(--white);
   border-bottom: 1px solid var(--border);
@@ -245,6 +244,7 @@ body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(-
 
 /* ── SETUP / FORM ── */
 .setup-screen { display: none; max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+.tour-view { display: none; }
 .setup-screen h2 { font-family: 'Libre Baskerville', serif; font-size: 20px; color: var(--ink); margin-bottom: 4px; }
 .setup-screen p { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
 .form-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
@@ -710,12 +710,16 @@ function drawMiniGauge(el, pct) {
 // ════════════════════════════════════════════════════════
 // HOME SCREEN
 // ════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.getElementById('home-screen').style.display  = name === 'home'  ? 'block' : 'none';
+  document.getElementById('setup-screen').style.display = name === 'setup' ? 'block' : 'none';
+  document.getElementById('tour-view').style.display    = name === 'tour'  ? 'block' : 'none';
+}
+
 function goHome() {
   activeTourId = null;
   if (wowChart) { wowChart.destroy(); wowChart = null; }
-  document.getElementById('home-screen').style.display = '';
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('tour-view').style.display = 'none';
+  showScreen('home');
   renderHome();
 }
 
@@ -834,9 +838,7 @@ function makeTourCard(tour) {
 // ════════════════════════════════════════════════════════
 function openTour(id) {
   activeTourId = id;
-  document.getElementById('home-screen').style.display = 'none';
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('tour-view').style.display = '';
+  showScreen('tour');
   // Reset tabs
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -1508,10 +1510,8 @@ function goSetup(tourId = null) {
   editingTourId = tourId || null;
   mktCount = 0;
   addedMkts.clear();
-  document.getElementById('home-screen').style.display = 'none';
-  document.getElementById('tour-view').style.display = 'none';
-  document.getElementById('setup-screen').style.display = '';
   document.getElementById('setup-title').textContent = tourId ? 'Edit Tour' : 'Create New Tour';
+  showScreen('setup');
 
   // Clear form
   ['f-artist','f-tour','f-keyword','f-vinofile-presale','f-onsale'].forEach(id => {
