@@ -6,1690 +6,1691 @@
 <title>City Winery — Tour Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Figtree:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --ink:        #1C1410;
-  --ink-soft:   #3D3028;
-  --ink-muted:  #6B5E55;
-  --ink-faint:  #9D918A;
-  --cream:      #FAF7F4;
-  --cream-mid:  #F2EDE8;
-  --cream-dark: #E8E0D8;
-  --white:      #FFFFFF;
-  --wine:       #6B1C2A;
-  --wine-rich:  #8C2438;
-  --wine-pale:  #F5EAEC;
-  --wine-ghost: #FDF6F7;
+  --wine:       #6B1A3A;
+  --wine-mid:   #9B4060;
+  --wine-light: #C8899A;
+  --wine-pale:  #f5eaef;
+  --wine-track: #e8d0d8;
   --gold:       #B8892A;
-  --gold-pale:  #FBF4E3;
-  --border:     #DDD5CC;
-  --border-lt:  #EAE4DE;
-  --green:      #1A6B3C;
-  --green-pale: #E4F2EB;
-  --amber:      #A06B10;
-  --amber-pale: #FEF3DC;
-  --red:        #9B1818;
-  --red-pale:   #FDE8E8;
-  --blue:       #1A3E8C;
-  --blue-pale:  #E4EDFC;
-  --purple:     #5A1F96;
-  --purple-pale:#EEE6FC;
-  --r:          8px;
-  --r-lg:       14px;
-  --r-xl:       20px;
-  --sh-xs:      0 1px 3px rgba(28,20,16,.06);
-  --sh-sm:      0 2px 8px rgba(28,20,16,.08);
-  --sh-md:      0 4px 20px rgba(28,20,16,.1);
-  --sh-lg:      0 12px 40px rgba(28,20,16,.14);
+  --ink:        #1a1410;
+  --slate:      #4a3f35;
+  --muted:      #7a6b60;
+  --mist:       #faf6f3;
+  --border:     rgba(107,26,58,0.12);
+  --border-mid: rgba(107,26,58,0.22);
+  --white:      #ffffff;
+  --green:      #2D6A4F;
+  --green-pale: #d1f0e2;
+  --amber:      #B86A0A;
+  --amber-pale: #fef3c7;
+  --red:        #991b1b;
+  --red-pale:   #fee2e2;
+  --radius:     8px;
+  --shadow:     0 1px 8px rgba(107,26,58,0.10);
+  --shadow-lg:  0 4px 24px rgba(107,26,58,0.16);
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(--ink); font-size: 14px; line-height: 1.5; }
 
-body {
-  font-family: 'Figtree', system-ui, sans-serif;
-  background: var(--cream);
-  color: var(--ink);
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ─── HEADER ─── */
-header {
-  background: var(--ink);
-  height: 56px;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 300;
-  box-shadow: 0 1px 0 rgba(255,255,255,.06), var(--sh-md);
-}
-.hbrand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.hbrand-logo {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-.hbrand-sep {
-  width: 1px;
-  height: 20px;
-  background: rgba(255,255,255,.15);
-}
-.hbrand-sub {
-  font-size: 11px;
-  font-weight: 400;
-  color: rgba(255,255,255,.45);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.hright {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sync-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 99px;
-  padding: 4px 10px 4px 8px;
-  font-size: 11px;
-  color: rgba(255,255,255,.55);
-}
-.sync-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.25);
-  flex-shrink: 0;
-}
-.sync-dot.ok     { background: #4ade80; }
-.sync-dot.syncing{ background: var(--gold); animation: blink 1s infinite; }
-.sync-dot.error  { background: #f87171; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ─── BUTTONS ─── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 13px;
-  border-radius: var(--r);
-  font-family: 'Figtree', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all .15s;
-  white-space: nowrap;
-  letter-spacing: .01em;
-}
-.btn-ghost {
-  background: rgba(255,255,255,.09);
-  color: rgba(255,255,255,.75);
-  border: 1px solid rgba(255,255,255,.14);
-}
-.btn-ghost:hover { background: rgba(255,255,255,.15); color: #fff; }
-.btn-accent {
+/* ── HEADER ── */
+.app-header {
   background: var(--wine);
   color: #fff;
-  box-shadow: 0 1px 3px rgba(107,28,42,.4);
-}
-.btn-accent:hover { background: var(--wine-rich); }
-.btn-primary {
-  background: var(--ink);
-  color: #fff;
-}
-.btn-primary:hover { background: var(--ink-soft); }
-.btn-secondary {
-  background: var(--white);
-  color: var(--ink-soft);
-  border: 1px solid var(--border);
-  box-shadow: var(--sh-xs);
-}
-.btn-secondary:hover { border-color: var(--wine); color: var(--wine); background: var(--wine-ghost); }
-.btn-danger { background: var(--red-pale); color: var(--red); border: 1px solid #F5B8B8; }
-.btn-danger:hover { background: #fbd5d5; }
-.btn-sm { padding: 5px 11px; font-size: 11px; }
-.btn-xs { padding: 3px 8px; font-size: 10px; }
-.btn-icon { padding: 6px 9px; }
-
-/* ─── LAYOUT ─── */
-.layout {
-  display: flex;
-  height: calc(100vh - 56px);
-  overflow: hidden;
-}
-
-/* ─── SIDEBAR ─── */
-.sidebar {
-  width: 248px;
-  min-width: 248px;
-  background: var(--white);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 1px 0 0 var(--border-lt);
-}
-.sb-top {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-lt);
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 12px rgba(107,26,58,0.4);
 }
-.sb-heading {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .12em;
-}
-.sb-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border-lt);
-  background: var(--cream);
-}
-.sb-tab {
-  flex: 1;
-  padding: 9px;
-  font-size: 10px;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
-  color: var(--ink-faint);
-  border-bottom: 2px solid transparent;
-  transition: all .13s;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.sb-tab.active { color: var(--wine); border-bottom-color: var(--wine); background: var(--white); }
-.sb-list { flex: 1; overflow-y: auto; padding: 8px; }
-.sb-item {
-  padding: 11px 12px;
-  border-radius: var(--r);
-  cursor: pointer;
-  margin-bottom: 2px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  transition: background .12s;
-  border: 1px solid transparent;
-}
-.sb-item:hover { background: var(--cream); }
-.sb-item.active { background: var(--wine-ghost); border-color: rgba(107,28,42,.15); }
-.sb-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.sb-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.3; }
-.sb-meta { font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
-.sb-pct {
-  margin-left: auto;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ink-muted);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.sb-foot {
-  padding: 12px;
-  border-top: 1px solid var(--border-lt);
-  background: var(--cream);
-}
+.hbrand { display: flex; align-items: center; gap: 10px; }
+.hbrand h1 { font-family: 'Libre Baskerville', serif; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; }
+.hbrand .hdiv { width: 1px; height: 24px; background: rgba(255,255,255,0.25); }
+.hbrand .hsub { font-size: 11px; font-weight: 300; opacity: 0.6; letter-spacing: 0.12em; text-transform: uppercase; }
+.hactions { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: var(--radius); font-family: 'Figtree', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; white-space: nowrap; }
+.btn-ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+.btn-ghost:hover { background: rgba(255,255,255,0.2); }
+.btn-gold { background: var(--gold); color: #fff; font-weight: 600; }
+.btn-gold:hover { filter: brightness(1.1); }
+.btn-wine { background: var(--wine); color: #fff; font-weight: 600; }
+.btn-wine:hover { background: var(--wine-mid); }
+.btn-outline { background: var(--white); color: var(--slate); border: 1px solid var(--border-mid); }
+.btn-outline:hover { background: var(--wine-pale); border-color: var(--wine); color: var(--wine); }
+.btn-danger { background: var(--red-pale); color: var(--red); border: 1px solid #fca5a5; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-xs { padding: 3px 8px; font-size: 10px; }
+.btn-icon { padding: 6px 8px; }
 
-/* ─── MAIN ─── */
-.main { flex: 1; overflow-y: auto; }
-
-/* ─── EMPTY STATE ─── */
-.empty-state {
+/* ── HOME SCREEN ── */
+.home-screen { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+.home-screen h2 { font-family: 'Libre Baskerville', serif; font-size: 20px; color: var(--ink); margin-bottom: 6px; }
+.home-meta { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+.tour-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.tour-card {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow .18s, transform .18s;
+  box-shadow: var(--shadow);
+}
+.tour-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.tc-accent { height: 5px; background: var(--wine); }
+.tc-accent.archived { background: var(--muted); }
+.tc-body { padding: 16px; }
+.tc-artist { font-family: 'Libre Baskerville', serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+.tc-name { font-size: 11px; color: var(--muted); margin-top: 2px; margin-bottom: 12px; }
+.mini-gauge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.mini-gauge-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.mini-gauge-label { font-size: 9px; color: var(--muted); text-align: center; max-width: 48px; line-height: 1.2; }
+.tc-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; }
+.tc-stat { }
+.tc-stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.tc-stat-value { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); font-weight: 500; margin-top: 2px; }
+.tc-footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-top: 1px solid var(--border); background: var(--mist); }
+.tc-updated { font-size: 10px; color: var(--muted); }
+.tc-actions { display: flex; gap: 4px; }
+.add-tour-card {
+  background: var(--white);
+  border-radius: 12px;
+  border: 2px dashed var(--border-mid);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  gap: 14px;
-  text-align: center;
-  padding: 48px;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 200px;
+  color: var(--muted);
+  transition: all .15s;
+  font-family: 'Figtree', sans-serif;
 }
-.empty-icon { font-size: 40px; opacity: .18; }
-.empty-state h2 {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 22px;
-  color: var(--ink);
-  font-weight: 400;
-}
-.empty-state p { font-size: 13px; color: var(--ink-muted); max-width: 300px; line-height: 1.65; }
+.add-tour-card:hover { border-color: var(--wine); color: var(--wine); background: var(--wine-pale); }
+.add-tour-icon { font-size: 28px; line-height: 1; }
+.add-tour-label { font-size: 13px; font-weight: 500; }
+.archived-section { margin-top: 32px; }
+.archived-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 14px; }
 
-/* ─── PAGE HEADER ─── */
-.pg-head {
-  background: var(--ink);
-  padding: 20px 28px;
+/* ── TOUR VIEW ── */
+.tour-view { display: none; }
+.tour-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
 }
-.pg-head-l h2 {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 21px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: .01em;
-}
-.pg-head-l p {
-  font-size: 11px;
-  color: rgba(255,255,255,.4);
-  margin-top: 4px;
-  letter-spacing: .02em;
-}
-.pg-head-r {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-  padding-top: 3px;
-}
+.th-left h2 { font-family: 'Libre Baskerville', serif; font-size: 20px; color: var(--ink); }
+.th-left p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.th-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tour-tabs { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; }
+.tab { padding: 11px 16px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+.tab:hover { color: var(--wine); }
+.tab.active { color: var(--wine); border-bottom-color: var(--wine); font-weight: 600; }
+.tab-content { padding: 24px 28px; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
 
-/* ─── TABS ─── */
-.tabs {
-  display: flex;
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 28px;
-  overflow-x: auto;
-  box-shadow: var(--sh-xs);
-}
-.tab {
-  padding: 13px 18px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-faint);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all .13s;
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-}
-.tab:hover { color: var(--ink-soft); }
-.tab.active { color: var(--wine); border-bottom-color: var(--wine); }
-
-/* ─── CONTENT ─── */
-.tab-content { padding: 24px 28px 40px; }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ─── SECTION HEADERS ─── */
-.sec-hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.sec-title {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--ink);
-  font-style: italic;
-}
-.sec-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border-lt);
-  margin-left: 14px;
-}
-
-/* ─── STAT CARDS ─── */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  margin-bottom: 22px;
-}
+/* ── KPI ROW ── */
+.kpi-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
 .kpi {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 16px 18px;
-  box-shadow: var(--sh-xs);
-  position: relative;
-  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  min-width: 120px;
+  box-shadow: var(--shadow);
 }
-.kpi::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--wine);
-  opacity: .12;
-}
-.kpi.accent::after { opacity: 1; }
-.kpi-label {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: 8px;
-}
-.kpi-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 26px;
-  font-weight: 500;
-  color: var(--ink);
-  line-height: 1;
-}
-.kpi-sub { font-size: 10px; color: var(--ink-faint); margin-top: 5px; }
+.kpi.kpi-success { border-color: var(--green); background: var(--green-pale); }
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 500; color: var(--ink); margin-top: 3px; }
+.kpi-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
 
-/* ─── VELOCITY STRIP ─── */
-.vel-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-.vel-card {
+/* ── SECTION LABELS ── */
+.section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; font-weight: 500; }
+
+/* ── PROGRESS BARS ── */
+.progress-label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--slate); margin-bottom: 5px; }
+.progress-track { background: var(--wine-track); border-radius: 99px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; background: var(--wine); transition: width .5s; }
+.progress-fill.green { background: var(--green); }
+.progress-fill.cw { background: var(--wine); }
+.progress-fill.amber { background: var(--amber); }
+
+/* ── GAUGE GRID ── */
+.gauge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.gauge-card {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 16px 20px;
-  box-shadow: var(--sh-xs);
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
 }
-.vel-label-col { flex: 1; }
-.vel-lbl {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: 5px;
-}
-.vel-desc { font-size: 11px; color: var(--ink-muted); line-height: 1.4; }
-.vel-nums { display: flex; gap: 20px; flex-shrink: 0; }
-.vel-num-item { text-align: center; }
-.vel-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--wine);
-  line-height: 1;
-}
-.vel-unit { font-size: 9px; color: var(--ink-faint); margin-top: 3px; text-transform: uppercase; letter-spacing: .07em; }
+.gauge-name { font-size: 11px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.gauge-pct { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; color: var(--wine); margin-top: 4px; }
+.gauge-detail { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.gauge-presale-note { font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.gauge-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 
-/* ─── PROGRESS ─── */
-.pct-row { display: flex; align-items: center; gap: 10px; }
-.pct-track { flex: 1; height: 5px; background: var(--cream-dark); border-radius: 99px; overflow: hidden; min-width: 40px; }
-.pct-fill { height: 100%; border-radius: 99px; transition: width .5s cubic-bezier(.4,0,.2,1); }
-.fg-green  { background: var(--green); }
-.fg-amber  { background: var(--gold); }
-.fg-red    { background: var(--red); }
-.fg-wine   { background: var(--wine); }
-.fg-purple { background: var(--purple); }
-.pct-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ink-muted);
-  width: 36px;
-  text-align: right;
-  flex-shrink: 0;
-}
+/* ── CAP BAR ── */
+.cap-bar-cell { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.cap-bar-track { width: 60px; height: 5px; background: var(--wine-track); border-radius: 99px; overflow: hidden; }
+.cap-bar-fill { height: 100%; border-radius: 99px; background: var(--wine); }
+.cap-bar-fill.high { background: var(--green); }
+.cap-bar-fill.low { background: var(--amber); }
+.cap-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 36px; text-align: right; }
 
-/* ─── DUAL BAR ─── */
-.dual-bar { display: flex; flex-direction: column; gap: 6px; }
-.dual-row { display: flex; align-items: center; gap: 8px; }
-.dual-lbl { font-size: 9px; color: var(--ink-faint); width: 46px; flex-shrink: 0; }
-.dual-track { flex: 1; height: 4px; background: var(--cream-dark); border-radius: 99px; overflow: hidden; }
-.dual-pre { height: 100%; background: var(--purple); border-radius: 99px; }
-.dual-pub { height: 100%; background: var(--wine); border-radius: 99px; }
-.dual-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-muted); width: 34px; text-align: right; }
+/* ── TABLES ── */
+.tbl-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; }
+.tbl-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl-wrap th { background: var(--wine); color: #fff; padding: 9px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 500; }
+.tbl-wrap th.r { text-align: right; }
+.tbl-wrap td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tbl-wrap td.r { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.tbl-wrap tr:last-child td { border-bottom: none; }
+.tbl-wrap tbody tr:hover td { background: var(--wine-pale); }
+.tbl-wrap .total-row td { font-weight: 600; background: var(--mist); }
+.city-hdr { font-family: 'Libre Baskerville', serif; font-size: 13px; font-weight: 700; color: var(--wine); padding: 14px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.city-hdr span { font-size: 11px; font-weight: 400; color: var(--muted); font-family: 'Figtree', sans-serif; margin-left: 6px; }
 
-/* ─── PILLS ─── */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-.p-great  { background: var(--green-pale); color: var(--green); }
-.p-on     { background: #d1fae5; color: #065f46; }
-.p-attn   { background: var(--amber-pale); color: var(--amber); }
-.p-behind { background: var(--red-pale); color: var(--red); }
-.p-sold   { background: var(--purple-pale); color: var(--purple); }
-.p-none   { background: var(--cream-mid); color: var(--ink-faint); border: 1px solid var(--border); }
+/* ── CHART ── */
+.chart-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--slate); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.chart-wrap { position: relative; height: 280px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--slate); }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-.b-early  { background: var(--blue-pale); color: var(--blue); }
-.b-late   { background: var(--purple-pale); color: var(--purple); }
-.b-solo   { background: var(--green-pale); color: var(--green); }
-.b-custom { background: var(--amber-pale); color: var(--amber); }
+/* ── PACING ── */
+.pacing-market { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; box-shadow: var(--shadow); }
+.pacing-market-hdr { background: var(--mist); border-bottom: 1px solid var(--border); padding: 14px 18px; display: flex; align-items: flex-start; justify-content: space-between; }
+.pacing-market-hdr h3 { font-family: 'Libre Baskerville', serif; font-size: 15px; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hdr-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.urgency-chip { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.urgency-chip.green { background: var(--green-pale); color: var(--green); }
+.urgency-chip.amber { background: var(--amber-pale); color: var(--amber); }
+.urgency-chip.red   { background: var(--red-pale); color: var(--red); }
+.pacing-body { padding: 16px 18px; }
+.progress-section { margin-bottom: 16px; }
+.pacing-targets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.pacing-target { background: var(--mist); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.pacing-target.green { border-color: var(--green); background: var(--green-pale); }
+.pacing-target.amber { border-color: var(--amber); background: var(--amber-pale); }
+.pacing-target-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.pacing-target-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500; color: var(--ink); margin-top: 4px; }
+.pacing-target-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.show-pacing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.show-pacing-card { background: var(--mist); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.show-pacing-date { font-size: 11px; font-weight: 600; color: var(--wine); margin-bottom: 8px; }
+.show-pacing-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--slate); margin-bottom: 4px; }
+.presale-summary { display: flex; flex-wrap: wrap; gap: 12px; background: var(--wine-pale); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; }
+.presale-summary-item { font-size: 11px; color: var(--slate); }
+.no-targets-note { background: var(--amber-pale); border: 1px solid var(--amber); border-radius: var(--radius); padding: 12px; font-size: 12px; color: var(--amber); margin-bottom: 14px; }
+.inline-target-edit { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+.inline-edit-field label { font-size: 10px; color: var(--slate); display: block; margin-bottom: 3px; }
+.inline-edit-field input { width: 100%; padding: 6px 8px; border: 1px solid var(--border-mid); border-radius: 5px; font-size: 12px; font-family: 'Figtree', sans-serif; }
+.inline-save-btn { margin-top: 10px; display: inline-block; background: var(--wine); color: #fff; border: none; border-radius: var(--radius); padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: 'Figtree', sans-serif; }
 
-/* ─── DATA TABLE ─── */
-.tbl-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: var(--sh-sm);
-  margin-bottom: 18px;
-}
-.tbl { width: 100%; border-collapse: collapse; }
-.tbl thead { background: var(--cream); }
-.tbl th {
-  padding: 10px 14px;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  white-space: nowrap;
-}
-.tbl th.r { text-align: right; }
-.tbl td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--border-lt);
-  font-size: 13px;
-  vertical-align: middle;
-  color: var(--ink);
-}
-.tbl td.r {
-  text-align: right;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-.tbl tr:last-child td { border-bottom: none; }
-.tbl tbody tr { transition: background .1s; }
-.tbl tbody tr:hover td { background: var(--wine-ghost); }
-
-/* ─── MARKET CARDS ─── */
-.mkt-grid { display: flex; flex-direction: column; gap: 14px; }
-.mkt-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  overflow: hidden;
-  box-shadow: var(--sh-sm);
-  transition: box-shadow .15s;
-}
-.mkt-card:hover { box-shadow: var(--sh-md); }
-.mkt-band {
-  height: 5px;
-  background: var(--wine);
-}
-.mkt-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--border-lt);
-}
-.mkt-name {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.mkt-meta { font-size: 11px; color: var(--ink-faint); margin-top: 3px; }
-.mkt-body { padding: 18px 20px; }
-.mkt-kpis {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.mkt-kpi {
-  background: var(--cream);
-  border-radius: var(--r);
-  padding: 10px 12px;
-}
-.mkt-kpi-lbl { font-size: 9px; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .08em; }
-.mkt-kpi-val { font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: var(--ink); margin-top: 4px; }
-.mkt-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
-.mkt-bar-lbl { font-size: 10px; color: var(--ink-faint); margin-bottom: 6px; }
-.mkt-vels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.mkt-vel {
-  background: var(--cream);
-  border-radius: var(--r-lg);
-  padding: 12px 14px;
-}
-.note-bar {
-  margin-top: 14px;
-  padding: 10px 14px;
-  background: var(--gold-pale);
-  border-radius: var(--r);
-  border-left: 3px solid var(--gold);
-  font-size: 11px;
-  color: var(--ink-soft);
-  font-style: italic;
-}
-
-/* ─── WOW CHART ─── */
-.wow-chart-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 20px;
-  box-shadow: var(--sh-sm);
-  margin-bottom: 18px;
-}
-.wow-chart-lbl {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: 18px;
-}
-.chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; }
-.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.chart-bar-outer { flex: 1; width: 100%; display: flex; justify-content: center; align-items: flex-end; }
-.chart-bar {
-  width: 100%;
-  max-width: 48px;
-  border-radius: 5px 5px 0 0;
-  background: var(--wine);
-  opacity: .65;
-  transition: opacity .14s;
-  min-height: 3px;
-}
-.chart-bar:hover { opacity: 1; }
-.chart-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); }
-.chart-bar-lbl { font-size: 9px; color: var(--ink-faint); }
-
-/* ─── PACING ─── */
-.pac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-.pac-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: var(--sh-xs);
-}
-.pac-card-head {
-  background: var(--cream);
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-lt);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.pac-name { font-size: 13px; font-weight: 600; color: var(--ink); }
-.pac-body { padding: 14px 16px; }
-.pac-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
-.pac-lbl { font-size: 10px; color: var(--ink-faint); }
-.pac-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); }
-
-/* ─── FORM ─── */
-.form-section { margin-bottom: 20px; }
-.form-section-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-lt);
-}
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group.full { grid-column: 1/-1; }
-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: .09em;
-}
-.req { color: var(--wine); margin-left: 2px; }
-input, select, textarea {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 8px 11px;
+/* ── SETUP / FORM ── */
+.setup-screen { display: none; max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+.setup-screen h2 { font-family: 'Libre Baskerville', serif; font-size: 20px; color: var(--ink); margin-bottom: 4px; }
+.setup-screen p { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+.form-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.form-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 16px; font-weight: 600; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field label { font-size: 11px; font-weight: 500; color: var(--slate); }
+.form-field input, .form-field select, .form-field textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
   font-family: 'Figtree', sans-serif;
   font-size: 13px;
   color: var(--ink);
-  transition: border-color .13s, box-shadow .13s;
-  width: 100%;
+  background: var(--white);
+  transition: border-color .15s;
 }
-input::placeholder, textarea::placeholder { color: var(--cream-dark); }
-input:focus, select:focus, textarea:focus {
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
   outline: none;
   border-color: var(--wine);
-  box-shadow: 0 0 0 3px rgba(107,28,42,.08);
+  box-shadow: 0 0 0 3px rgba(107,26,58,0.08);
 }
-textarea { resize: vertical; min-height: 52px; line-height: 1.5; }
-
-/* ─── MARKET BUILDER ─── */
-.mb-wrap { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 12px; box-shadow: var(--sh-xs); }
-.mb-header {
-  display: grid;
-  grid-template-columns: 1.4fr 82px 82px 90px 90px 90px 28px;
-  gap: 6px;
-  padding: 9px 14px;
-  background: var(--ink);
-}
-.mb-header span {
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(255,255,255,.5);
-  text-transform: uppercase;
-  letter-spacing: .09em;
-}
-.mb-cards { border-top: none; }
-.mb-card { border-bottom: 1px solid var(--border-lt); background: var(--white); }
-.mb-card:last-child { border-bottom: none; }
-.mb-cfg-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px;
-  background: var(--cream);
-  border-bottom: 1px solid var(--border-lt);
-}
-.mb-cfg-bar label { font-size: 9px; color: var(--ink-faint); white-space: nowrap; }
-.mb-cfg-bar select { font-size: 11px; padding: 4px 8px; width: auto; flex: 1; max-width: 240px; }
-.mb-row {
-  display: grid;
-  grid-template-columns: 1.4fr 82px 82px 90px 90px 90px 28px;
-  gap: 6px;
-  padding: 10px 14px;
-}
-.mb-row input, .mb-row select { font-size: 11px; padding: 6px 9px; }
-.mb-nights { padding: 8px 14px 12px; background: var(--cream); border-top: 1px solid var(--border-lt); }
-.mb-nights-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.mb-nights-lbl { font-size: 9px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .09em; }
-.mb-comment { padding: 0 14px 12px; background: var(--cream); }
-.mb-comment textarea { font-size: 11px; padding: 7px 10px; min-height: 44px; background: var(--white); }
-.mb-rm {
-  background: none; border: none; cursor: pointer;
-  color: var(--red); font-size: 17px; line-height: 1;
-  opacity: .35; transition: opacity .12s;
-  align-self: start; padding-top: 9px;
-}
-.mb-rm:hover { opacity: 1; }
-
-/* night / show */
-.night-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 6px; overflow: hidden; }
-.night-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--cream-mid);
-  border-bottom: 1px solid var(--border-lt);
-}
-.night-num { font-size: 9px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .08em; flex-shrink: 0; }
-.night-head input[type="date"] { font-size: 11px; padding: 4px 8px; width: 150px; flex-shrink: 0; }
-.night-head-r { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.rm-night { background: none; border: none; cursor: pointer; color: var(--red); font-size: 14px; opacity: .35; transition: opacity .12s; }
-.rm-night:hover { opacity: 1; }
-.night-body { padding: 10px 12px 12px; }
-.show-hdr-row {
-  display: grid;
-  grid-template-columns: 108px 78px 78px 78px 84px 24px;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.show-hdr-row span { font-size: 9px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .07em; }
-.show-slot {
-  display: grid;
-  grid-template-columns: 108px 78px 78px 78px 84px 24px;
-  gap: 6px;
-  align-items: center;
-  margin-bottom: 5px;
-}
-.show-slot select, .show-slot input { font-size: 11px; padding: 5px 8px; }
-.rm-show { background: none; border: none; cursor: pointer; color: var(--red); font-size: 13px; opacity: .3; transition: opacity .12s; justify-self: center; }
-.rm-show:hover { opacity: 1; }
-.add-show-link {
-  background: none; border: none; cursor: pointer;
-  font-size: 10px; font-weight: 700; color: var(--wine);
-  text-decoration: underline; text-underline-offset: 2px;
-  transition: opacity .12s; padding: 0;
-}
-.add-show-link:hover { opacity: .65; }
-.add-night-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 700; color: var(--wine);
-  background: none; border: 1px dashed rgba(107,28,42,.35);
-  border-radius: var(--r); padding: 4px 10px; cursor: pointer;
-  transition: all .12s;
-}
-.add-night-btn:hover { background: var(--wine-pale); }
-
-/* ─── MODAL ─── */
-.overlay {
-  position: fixed; inset: 0;
-  background: rgba(28,20,16,.65);
-  backdrop-filter: blur(2px);
-  z-index: 400;
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 36px 16px; overflow-y: auto;
-  opacity: 0; pointer-events: none; transition: opacity .18s;
-}
-.overlay.open { opacity: 1; pointer-events: all; }
-.modal {
+.req { color: var(--wine); margin-left: 2px; }
+.mkt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.mchip {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border-mid);
   background: var(--white);
-  border-radius: var(--r-xl);
-  width: 100%; max-width: 880px;
-  box-shadow: var(--sh-lg);
-  transform: translateY(-18px);
-  transition: transform .2s cubic-bezier(.34,1.28,.64,1);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Figtree', sans-serif;
+  color: var(--slate);
+  transition: all .13s;
 }
-.overlay.open .modal { transform: translateY(0); }
-.modal-hd {
-  padding: 20px 26px 18px;
-  border-bottom: 1px solid var(--border-lt);
-  display: flex; align-items: center; justify-content: space-between;
+.mchip:hover { background: var(--wine-pale); border-color: var(--wine); color: var(--wine); }
+.mchip.sel { background: var(--wine); color: #fff; border-color: var(--wine); }
+.mkt-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
 }
-.modal-hd-title {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 18px; font-weight: 700; color: var(--ink);
+.mkt-card-hdr {
+  background: var(--wine-pale);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wine);
 }
-.modal-close {
-  background: var(--cream); border: 1px solid var(--border);
-  border-radius: var(--r); font-size: 14px; cursor: pointer;
-  color: var(--ink-muted); padding: 4px 9px; transition: all .12s;
-}
-.modal-close:hover { background: var(--cream-dark); }
-.modal-body { padding: 22px 26px; max-height: 73vh; overflow-y: auto; }
-.modal-ft {
-  padding: 14px 26px; border-top: 1px solid var(--border-lt);
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
-}
-.modal-ft-r { display: flex; gap: 10px; }
+.mkt-remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; transition: color .12s; }
+.mkt-remove:hover { color: var(--red); }
+.mkt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 14px; }
+.mkt-shows-section { padding: 0 14px 14px; }
+.mkt-shows-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+.show-row-form { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+.show-row-form label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 3px; }
+.add-show-row-btn { background: none; border: 1px dashed var(--border-mid); color: var(--muted); border-radius: var(--radius); padding: 6px; font-size: 11px; cursor: pointer; width: 100%; font-family: 'Figtree', sans-serif; margin-top: 6px; transition: all .13s; }
+.add-show-row-btn:hover { border-color: var(--wine); color: var(--wine); background: var(--wine-pale); }
+.mkt-comment-section { padding: 0 14px 14px; }
+.mkt-comment-section label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; display: block; margin-bottom: 6px; }
+.mkt-comment-section textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: var(--radius); font-family: 'Figtree', sans-serif; font-size: 12px; resize: vertical; min-height: 54px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.cfg-select-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--wine-pale); border-bottom: 1px solid var(--border); }
+.cfg-select-row label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--wine); white-space: nowrap; }
+.cfg-select-row select { font-size: 12px; padding: 4px 8px; border: 1px solid var(--border-mid); border-radius: 5px; font-family: 'Figtree', sans-serif; }
 
-/* ─── CONFIRM ─── */
-.confirm-overlay {
-  position: fixed; inset: 0;
-  background: rgba(28,20,16,.65);
-  backdrop-filter: blur(2px);
-  z-index: 500;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity .14s;
-}
-.confirm-overlay.open { opacity: 1; pointer-events: all; }
-.confirm-box {
-  background: var(--white); border-radius: var(--r-xl);
-  padding: 28px; max-width: 400px; width: 90%;
-  box-shadow: var(--sh-lg);
-  transform: scale(.95); transition: transform .15s cubic-bezier(.34,1.28,.64,1);
-}
-.confirm-overlay.open .confirm-box { transform: scale(1); }
-.confirm-box h3 { font-family: 'Libre Baskerville', serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.confirm-box p { font-size: 13px; color: var(--ink-muted); margin-bottom: 20px; line-height: 1.55; }
-.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+/* ── MODAL ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(26,20,16,0.5); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-backdrop.show { opacity: 1; pointer-events: all; }
+.modal-box { background: var(--white); border-radius: 12px; padding: 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg); transform: translateY(-8px); transition: transform .2s; }
+.modal-backdrop.show .modal-box { transform: translateY(0); }
+.modal-box h3 { font-family: 'Libre Baskerville', serif; font-size: 16px; margin-bottom: 10px; }
+.modal-box p { font-size: 13px; color: var(--slate); margin-bottom: 20px; line-height: 1.6; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-/* ─── SETUP ─── */
-.info-box {
-  background: var(--blue-pale);
-  border: 1px solid #bfdbfe;
-  border-radius: var(--r-lg);
-  padding: 14px 18px;
-  margin-bottom: 16px;
-}
-.info-box h3 { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 5px; }
-.info-box p { font-size: 11px; color: #1e40af; line-height: 1.6; }
-.steps { padding-left: 16px; margin-top: 10px; }
-.steps li { font-size: 11px; color: #1e40af; margin-bottom: 5px; line-height: 1.5; }
-code { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: rgba(30,64,175,.1); padding: 1px 5px; border-radius: 3px; }
+/* ── GOOGLE SHEETS SETTINGS ── */
+.sheets-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--mist); border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+.sheets-status { display: flex; align-items: center; gap: 5px; }
+.sheets-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sheets-dot.connected { background: var(--green); }
 
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; bottom: 24px; right: 24px;
-  background: var(--ink); color: #fff;
-  padding: 12px 18px; border-radius: var(--r-lg);
-  font-size: 12px; font-weight: 500;
-  box-shadow: var(--sh-lg);
-  z-index: 999;
-  transform: translateY(80px); opacity: 0;
-  transition: all .24s cubic-bezier(.34,1.28,.64,1);
-  max-width: 320px;
-}
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: var(--radius); font-size: 12px; font-weight: 500; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .25s; max-width: 300px; }
 .toast.show { transform: translateY(0); opacity: 1; }
-.toast.success { background: var(--green); }
-.toast.error   { background: var(--red); }
-.toast.warn    { background: var(--amber); }
+.toast.ok { background: var(--green); }
+.toast.err { background: var(--red); }
 
-/* ─── MISC ─── */
+/* ── MISC ── */
 .hidden { display: none !important; }
-.tag { display: inline-block; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: .05em; text-transform: uppercase; }
-.tag-new { background: var(--wine); color: #fff; }
-.divider { height: 1px; background: var(--border-lt); margin: 16px 0; }
-::-webkit-scrollbar { width: 5px; height: 5px; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--cream-dark); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 99px; }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<header>
+<header class="app-header">
   <div class="hbrand">
-    <span class="hbrand-logo">City Winery</span>
-    <div class="hbrand-sep"></div>
-    <span class="hbrand-sub">Tour Tracker</span>
+    <h1 onclick="goHome()">CITY WINERY</h1>
+    <div class="hdiv"></div>
+    <span class="hsub">Tour Tracker</span>
   </div>
-  <div class="hright">
-    <div class="sync-pill">
-      <div class="sync-dot" id="syncDot"></div>
-      <span id="syncLabel">Local</span>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="triggerCSV()">&#8679; Upload CSV</button>
-    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(event)">
-    <button class="btn btn-accent btn-sm" onclick="persistData()">&#10003; Save</button>
-    <button class="btn btn-ghost btn-sm" onclick="openSetup()">&#9881; Sync Setup</button>
+  <div class="hactions">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('global-csv').click()">⬆ Upload CSV</button>
+    <input type="file" id="global-csv" accept=".csv" style="display:none" onchange="handleGlobalCSV(event)">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-json').click()">↩ Import Data</button>
+    <input type="file" id="import-json" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-gold btn-sm" onclick="exportData()">⬇ Save Snapshot</button>
   </div>
 </header>
 
-<div class="layout">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sb-top">
-      <span class="sb-heading">Tours</span>
-      <button class="btn btn-primary btn-sm btn-icon" onclick="openNewTour()" title="New Tour" style="font-size:15px;padding:3px 9px">+</button>
-    </div>
-    <div class="sb-tabs">
-      <div class="sb-tab active" id="sbTabActive" onclick="setSbTab('active')">Active</div>
-      <div class="sb-tab" id="sbTabArchive" onclick="setSbTab('archived')">Archive</div>
-    </div>
-    <div class="sb-list" id="tourList"></div>
-    <div class="sb-foot">
-      <button class="btn btn-secondary btn-sm" style="width:100%" onclick="goBack()">&#8592; Back</button>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="empty-state" id="emptyState">
-      <div class="empty-icon">&#127863;</div>
-      <h2>No tour selected</h2>
-      <p>Choose a tour from the sidebar, or start fresh with a new one.</p>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="openNewTour()">+ New Tour</button>
-    </div>
-    <div id="tourContent" class="hidden"></div>
-  </main>
+<!-- SHEETS SYNC BAR -->
+<div class="sheets-bar" id="sheets-bar">
+  <div class="sheets-status">
+    <div class="sheets-dot" id="sheets-dot"></div>
+    <span id="sheets-status-text">Google Sheets: not configured</span>
+  </div>
+  <button class="btn btn-xs btn-outline" onclick="promptSheetsURL()">Configure</button>
+  <button class="btn btn-xs btn-outline" onclick="syncToSheets(true)">Sync now</button>
 </div>
 
-<!-- TOUR MODAL -->
-<div class="overlay" id="tourModal">
-  <div class="modal">
-    <div class="modal-hd">
-      <span class="modal-hd-title" id="modalTitle">New Tour</span>
-      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+<!-- HOME SCREEN -->
+<div class="home-screen" id="home-screen">
+  <h2>Active Tours</h2>
+  <p class="home-meta">Click a tour to view its dashboard, or create a new one.</p>
+  <div class="tour-grid" id="active-tour-grid"></div>
+  <div class="archived-section" id="archived-section" style="display:none">
+    <h3>Archived</h3>
+    <div class="tour-grid" id="archived-tour-grid"></div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div class="setup-screen" id="setup-screen">
+  <h2 id="setup-title">Create New Tour</h2>
+  <p>Enter tour details and add markets. Ticket counts come in later via CSV.</p>
+
+  <div class="form-section">
+    <div class="form-section-title">Tour Info</div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Artist Name <span class="req">*</span></label>
+        <input type="text" id="f-artist" placeholder="e.g. Norah Jones">
+      </div>
+      <div class="form-field">
+        <label>Tour Name</label>
+        <input type="text" id="f-tour" placeholder="e.g. City Winery Tour 2026">
+      </div>
+      <div class="form-field">
+        <label>CSV Keyword</label>
+        <input type="text" id="f-keyword" placeholder="For auto-matching CSV by filename">
+      </div>
+      <div class="form-field">
+        <label>VinoFile Presale Date</label>
+        <input type="date" id="f-vinofile-presale">
+      </div>
+      <div class="form-field">
+        <label>Public On-Sale Date</label>
+        <input type="date" id="f-onsale">
+      </div>
     </div>
-    <div class="modal-body">
-      <div class="form-section">
-        <div class="form-section-title">Tour Details</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Artist Name <span class="req">*</span></label><input type="text" id="f_artist" placeholder="e.g. Norah Jones"></div>
-          <div class="form-group"><label>Tour Name <span class="req">*</span></label><input type="text" id="f_tourName" placeholder="e.g. Summer Run 2025"></div>
-          <div class="form-group"><label>CSV Match Keyword</label><input type="text" id="f_keyword" placeholder="For auto-matching CSV uploads"></div>
-          <div class="form-group"><label>Default Ticket Price ($)</label><input type="number" id="f_price" placeholder="e.g. 65"></div>
-          <div class="form-group"><label>Artist Presale Date</label><input type="date" id="f_presale"></div>
-          <div class="form-group"><label>Public On-Sale Date</label><input type="date" id="f_onsale"></div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title" style="display:flex;align-items:center;gap:8px">
-          Markets &amp; Shows <span class="tag tag-new">Multi-night</span>
-        </div>
-        <p style="font-size:11px;color:var(--ink-faint);margin-bottom:14px;line-height:1.6">Caps are pre-filled from City Winery defaults — edit freely. Breakeven is calculated per market across all nights combined.</p>
-        <div class="mb-wrap">
-          <div class="mb-header">
-            <span>Market</span><span>Sellable</span><span>Total Cap</span>
-            <span>BE Tickets</span><span>BE Gross $</span><span>Pot. Gross $</span><span></span>
-          </div>
-          <div class="mb-cards" id="mktCards"></div>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="addMarket()">+ Add Market</button>
-      </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">Markets</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a market to add it. Capacity defaults are pre-filled — adjust as needed. Breakeven and potential gross are per full market run (all nights combined).</p>
+    <div class="mkt-chips" id="mkt-chips"></div>
+    <div id="mkt-cards"></div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-outline" onclick="cancelSetup()">Cancel</button>
+    <button class="btn btn-wine" onclick="saveTourFromForm()">Create Tour</button>
+  </div>
+</div>
+
+<!-- TOUR VIEW -->
+<div class="tour-view" id="tour-view">
+  <div class="tour-header">
+    <div class="th-left">
+      <h2 id="th-title">—</h2>
+      <p id="th-sub">—</p>
     </div>
-    <div class="modal-ft">
-      <div><button class="btn btn-danger btn-sm" id="archiveBtn" onclick="archiveTour()" style="display:none">Archive Tour</button></div>
-      <div class="modal-ft-r">
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" id="modalSaveBtn" onclick="saveTour()">Create Tour</button>
-      </div>
+    <div class="th-right">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('tour-csv').click()">⬆ Upload CSV</button>
+      <input type="file" id="tour-csv" accept=".csv" style="display:none" onchange="handleTourCSV(event)">
+      <button class="btn btn-outline btn-sm" onclick="editTour()">✎ Edit</button>
+      <button class="btn btn-outline btn-sm" onclick="archiveCurrentTour()">Archive</button>
+      <button class="btn btn-outline btn-sm" onclick="goHome()">← Home</button>
+    </div>
+  </div>
+  <div class="tour-tabs">
+    <div class="tab active" onclick="switchTab('sales')">Ticket Sales</div>
+    <div class="tab" onclick="switchTab('byshow')">By Show</div>
+    <div class="tab" onclick="switchTab('wow')">Week over Week</div>
+    <div class="tab" onclick="switchTab('pacing')">Pacing &amp; Goals</div>
+  </div>
+  <div class="tab-content">
+    <div class="tab-pane active" id="pane-sales"></div>
+    <div class="tab-pane" id="pane-byshow"></div>
+    <div class="tab-pane" id="pane-wow">
+      <div class="chart-card" id="wow-chart-card"></div>
+      <div class="tbl-wrap"><table id="wow-table-el"><thead></thead><tbody></tbody></table></div>
+    </div>
+    <div class="tab-pane" id="pane-pacing">
+      <div id="pacing-content"></div>
     </div>
   </div>
 </div>
 
-<!-- SYNC SETUP MODAL -->
-<div class="overlay" id="setupModal">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-hd">
-      <span class="modal-hd-title">Sync Setup</span>
-      <button class="modal-close" onclick="closeSetup()">&#10005;</button>
-    </div>
-    <div class="modal-body">
-      <div class="info-box">
-        <h3>&#128279; Connect to Google Sheets</h3>
-        <p>Once connected, all tour data syncs to your spreadsheet — anyone with the tracker URL sees live data.</p>
-      </div>
-      <div class="form-section-title" style="margin-bottom:10px">Step 1 — Deploy Apps Script</div>
-      <ol class="steps">
-        <li>Open Google Sheets &#8594; create spreadsheet named <code>CityWineryTourTracker</code></li>
-        <li>Extensions &#8594; Apps Script &#8594; delete default code, paste script below, save</li>
-        <li>Deploy &#8594; New Deployment &#8594; Web App</li>
-        <li>Execute as: <strong>Me</strong> &nbsp;|&nbsp; Who has access: <strong>Anyone</strong></li>
-        <li>Deploy &#8594; authorize &#8594; copy the Web App URL</li>
-      </ol>
-      <div style="margin:14px 0">
-        <div style="font-size:9px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px">Apps Script</div>
-        <textarea id="appsScriptCode" readonly style="font-family:monospace;font-size:10px;height:160px;background:#1a1a1a;color:#d4d4d4;border-radius:var(--r);padding:12px;resize:vertical;border:none"></textarea>
-        <button class="btn btn-secondary btn-xs" style="margin-top:7px" onclick="copyScript()">Copy to clipboard</button>
-      </div>
-      <div class="divider"></div>
-      <div class="form-section-title" style="margin-bottom:10px">Step 2 — Paste Web App URL</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label>Web App URL</label>
-        <input type="text" id="sheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="testAndSaveUrl()">Test &amp; Save Connection</button>
-      <div class="divider"></div>
-      <div class="form-section-title" style="margin-bottom:10px">Step 3 — Email Auto-Parsing <span class="tag" style="background:var(--blue-pale);color:var(--blue);margin-left:4px">Optional</span></div>
-      <div class="form-grid">
-        <div class="form-group"><label>Email Subject Pattern</label><input type="text" id="emailSubject" placeholder="e.g. Daily Ticket Count"></div>
-        <div class="form-group"><label>Sender Address</label><input type="text" id="emailSender" placeholder="e.g. reports@ticketweb.com"></div>
-      </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="saveEmailCfg()">Save Email Config</button>
-    </div>
-    <div class="modal-ft"><div></div><div class="modal-ft-r"><button class="btn btn-secondary" onclick="closeSetup()">Close</button></div></div>
-  </div>
-</div>
-
-<!-- CONFIRM -->
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <h3 id="confirmTitle">Are you sure?</h3>
-    <p id="confirmMsg"></p>
-    <div class="confirm-actions">
-      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" id="confirmOkBtn">Confirm</button>
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-wine" id="modal-confirm">Confirm</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toastEl"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ── MARKET DEFAULTS ── */
-const MKT = {
-  'New York City':  {sellable:330,total:430},
-  'Chicago':        {sellable:304,total:345},
-  'Nashville':      {sellable:314,total:394},
-  'Atlanta':        {sellable:312,total:402},
-  'Boston':         {sellable:288,total:328},
-  'Philadelphia':   {sellable:312,total:365},
-  'Hudson Valley':  {sellable:312,total:352},
-  'St. Louis':      {configs:[
-    {label:'Config A — 200 sellable / 210 total',sellable:200,total:210},
-    {label:'Config B — 260 sellable / 280 total',sellable:260,total:280},
-  ]},
-  'Pittsburgh':     {configs:[
-    {label:'Config A — 220 sellable / 242 total',sellable:220,total:242},
-    {label:'Config B — 252 sellable / 282 total',sellable:252,total:282},
-  ]},
+// ════════════════════════════════════════════════════════
+// KNOWN CAPS — default capacities per market
+// ════════════════════════════════════════════════════════
+const KNOWN_CAPS = {
+  'New York City': [
+    { label: 'Standard', sell: 330, total: 430 }
+  ],
+  'Chicago': [
+    { label: 'Standard', sell: 304, total: 345 }
+  ],
+  'Nashville': [
+    { label: 'Standard', sell: 314, total: 394 }
+  ],
+  'Atlanta': [
+    { label: 'Standard', sell: 312, total: 402 }
+  ],
+  'Boston': [
+    { label: 'Standard', sell: 288, total: 328 }
+  ],
+  'Philadelphia': [
+    { label: 'Standard', sell: 312, total: 365 }
+  ],
+  'Hudson Valley': [
+    { label: 'Standard', sell: 312, total: 352 }
+  ],
+  'St. Louis': [
+    { label: 'Config A — 200 sell', sell: 200, total: 210 },
+    { label: 'Config B — 260 sell', sell: 260, total: 280 }
+  ],
+  'Pittsburgh': [
+    { label: 'Config A — 220 sell', sell: 220, total: 242 },
+    { label: 'Config B — 252 sell', sell: 252, total: 282 }
+  ]
 };
-const ALL_MKTS = Object.keys(MKT);
+const ALL_MARKETS = Object.keys(KNOWN_CAPS);
+const PALETTE = ['#6B1A3A','#2E6B8A','#4A7C59','#8B5E3C','#5E4A8B','#2A6B6B','#8B3A1A','#3A5F8B','#6B5E1A'];
 
-/* ── STATE ── */
-let tours=[],activeTourId=null,activeTab='overview',sbTab='active';
-let editingId=null,mktData=[],sheetsUrl='',emailCfg={};
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const STORE_KEY = 'cw_tours_v4';
+let tours = {};          // { [id]: tourObj }
+let activeTourId = null;
+let editingTourId = null;
+let wowChart = null;
+let mktCount = 0;
+const addedMkts = new Set();
+let sheetsURL = localStorage.getItem('cw_sheets_url') || '';
 
-/* ── BOOT ── */
-window.addEventListener('DOMContentLoaded',()=>{
-  try{
-    const r=localStorage.getItem('cw_tours_v4');if(r)tours=JSON.parse(r);
-    const s=localStorage.getItem('cw_sheets_url');if(s)sheetsUrl=s;
-    const e=localStorage.getItem('cw_email_cfg');if(e)emailCfg=JSON.parse(e);
-  }catch(x){tours=[];}
-  updateSyncUi(); renderSidebar(); populateScript();
-  if(sheetsUrl) loadFromSheets(true);
-});
-
-/* ── PERSISTENCE ── */
-function persistData(){
-  localStorage.setItem('cw_tours_v4',JSON.stringify(tours));
-  showToast('Saved','success');
-  if(sheetsUrl) syncToSheets();
+// ════════════════════════════════════════════════════════
+// PERSISTENCE
+// ════════════════════════════════════════════════════════
+function loadTours() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) tours = JSON.parse(raw);
+  } catch(e) { tours = {}; }
 }
-async function syncToSheets(silent){
-  setSyncState('syncing','Syncing…');
-  try{
-    const r=await fetch(sheetsUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'SAVE',data:tours})});
-    const j=await r.json();
-    if(j.ok){setSyncState('ok','Synced');if(!silent)showToast('Synced to Sheets','success');}
-    else{setSyncState('error','Error');if(!silent)showToast('Sync failed','error');}
-  }catch(e){setSyncState('error','Offline');if(!silent)showToast('Saved locally — Sheets unreachable','warn');}
+function saveTours() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(tours));
+  syncToSheets();
 }
-async function loadFromSheets(silent){
-  if(!sheetsUrl)return;
-  setSyncState('syncing','Loading…');
-  try{
-    const r=await fetch(sheetsUrl+'?action=LOAD');
-    const j=await r.json();
-    if(j.ok&&j.data){
-      tours=j.data;localStorage.setItem('cw_tours_v4',JSON.stringify(tours));
-      renderSidebar();if(activeTourId)renderTour();
-      setSyncState('ok','Synced');if(!silent)showToast('Loaded from Sheets','success');
+function exportData() {
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    exportedAtDisplay: new Date().toLocaleString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' }),
+    tours
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'CityWinery_TourTracker_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ Snapshot saved');
+}
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const snap = JSON.parse(ev.target.result);
+      if (!snap.tours) { toast('⚠ Invalid data file', 'err'); return; }
+      Object.assign(tours, snap.tours);
+      saveTours();
+      goHome();
+      toast('✓ Data imported — ' + Object.keys(snap.tours).length + ' tours');
+    } catch(err) { toast('⚠ Error reading file', 'err'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ════════════════════════════════════════════════════════
+// GOOGLE SHEETS SYNC
+// ════════════════════════════════════════════════════════
+function updateSheetsUI() {
+  const dot = document.getElementById('sheets-dot');
+  const txt = document.getElementById('sheets-status-text');
+  if (sheetsURL) {
+    dot.className = 'sheets-dot connected';
+    txt.textContent = 'Google Sheets: connected';
+  } else {
+    dot.className = 'sheets-dot';
+    txt.textContent = 'Google Sheets: not configured';
+  }
+}
+function promptSheetsURL() {
+  const url = prompt('Paste your Google Apps Script Web App URL:', sheetsURL || '');
+  if (url === null) return;
+  sheetsURL = url.trim();
+  localStorage.setItem('cw_sheets_url', sheetsURL);
+  updateSheetsUI();
+  if (sheetsURL) syncToSheets(true);
+}
+async function syncToSheets(manual = false) {
+  if (!sheetsURL) return;
+  try {
+    const res = await fetch(sheetsURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'SAVE', data: tours })
+    });
+    if (manual) toast('✓ Synced to Google Sheets', 'ok');
+  } catch(e) {
+    if (manual) toast('⚠ Sheets sync failed — check URL', 'err');
+  }
+}
+async function loadFromSheets() {
+  if (!sheetsURL) return;
+  try {
+    const res = await fetch(sheetsURL + '?action=LOAD');
+    if (!res.ok) return;
+    const json = await res.json();
+    if (json.ok && json.data && Object.keys(json.data).length > 0) {
+      tours = json.data;
+      localStorage.setItem(STORE_KEY, JSON.stringify(tours));
+      renderHome();
+      toast('✓ Data loaded from Sheets');
     }
-  }catch(e){setSyncState('error','Offline');}
+  } catch(e) {}
 }
-function setSyncState(s,l){
-  const d=document.getElementById('syncDot'),lb=document.getElementById('syncLabel');
-  d.className='sync-dot'+(s==='ok'?' ok':s==='syncing'?' syncing':s==='error'?' error':'');
-  lb.textContent=l;
-}
-function updateSyncUi(){setSyncState(sheetsUrl?'ok':'','',sheetsUrl?'Sheets':'Local');setSyncState(sheetsUrl?'ok':'x',sheetsUrl?'Sheets':'Local');}
 
-/* ── SIDEBAR ── */
-function setSbTab(t){
-  sbTab=t;
-  document.getElementById('sbTabActive').classList.toggle('active',t==='active');
-  document.getElementById('sbTabArchive').classList.toggle('active',t==='archived');
-  renderSidebar();
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+const fmt$ = v => '$' + Math.round(v).toLocaleString();
+const fmtPct = v => v.toFixed(1) + '%';
+const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
+function cityOrder(shows) {
+  const seen = new Set(), order = [];
+  [...shows].sort((a,b) => a.date.localeCompare(b.date)).forEach(s => {
+    if (!seen.has(s.city)) { seen.add(s.city); order.push(s.city); }
+  });
+  return order;
 }
-function renderSidebar(){
-  const el=document.getElementById('tourList');
-  const f=tours.filter(t=>t.archived?sbTab==='archived':sbTab==='active');
-  if(!f.length){el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:11px;line-height:1.6">${sbTab==='archived'?'No archived tours':'No active tours yet'}</div>`;return;}
-  el.innerHTML=f.map(t=>{
-    const sh=flatShows(t),sold=sh.reduce((s,x)=>s+x.sold,0),cap=sh.reduce((s,x)=>s+x.cap,0);
-    const pct=cap?Math.round(sold/cap*100):0;
-    const dc=pct>=100?'var(--purple)':pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
-    const isActive=t.id===activeTourId;
-    return`<div class="sb-item${isActive?' active':''}" onclick="selectTour('${t.id}')">
-      <div class="sb-dot" style="background:${dc}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="sb-name">${t.artist}</div>
-        <div class="sb-meta">${t.tourName} · ${t.markets.length} mkt${t.markets.length!==1?'s':''}</div>
+function byCity(shows) {
+  const m = {};
+  shows.forEach(s => {
+    if (!m[s.city]) m[s.city] = { count: 0, sales: 0, shows: [] };
+    m[s.city].count += s.count;
+    m[s.city].sales += s.sales;
+    m[s.city].shows.push({ ...s });
+  });
+  return m;
+}
+function getWeekStart(d) {
+  const dt = new Date(d + 'T12:00:00');
+  const day = dt.getDay();
+  dt.setDate(dt.getDate() - (day === 0 ? 6 : day - 1));
+  return dt.toISOString().slice(0, 10);
+}
+function getPresale(tour, dateStr) {
+  if (!tour.presaleSnapshot) return 0;
+  return tour.presaleSnapshot[dateStr] || 0;
+}
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3200);
+}
+function showModal(title, body, onConfirm) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  document.getElementById('modal-confirm').onclick = () => { closeModal(); onConfirm(); };
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+// ════════════════════════════════════════════════════════
+// GAUGE DRAWING
+// ════════════════════════════════════════════════════════
+function drawSplitGauge(el, presalePct, publicPct) {
+  if (!el) return;
+  const r = 36, cx = 55, cy = 50, sw = 9;
+  const total = Math.PI * r;
+  const clampPublic = Math.min(Math.max(publicPct, 0), 100);
+  const clampPresale = Math.min(Math.max(presalePct, 0), 100 - clampPublic);
+  const publicFill = (clampPublic / 100) * total;
+  const presaleFill = (clampPresale / 100) * total;
+  let svg = `<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#e8d0d8" stroke-width="${sw}" stroke-linecap="round"/>`;
+  if (presaleFill > 0) {
+    svg += `<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#C8899A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(presaleFill+publicFill).toFixed(2)} ${(total-presaleFill-publicFill+0.5).toFixed(2)}"/>`;
+  }
+  if (publicFill > 0) {
+    svg += `<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#6B1A3A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${publicFill.toFixed(2)} ${(total-publicFill+0.5).toFixed(2)}"/>`;
+  }
+  if (presaleFill === 0 && publicFill === 0) {
+    svg += `<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#e8d0d8" stroke-width="${sw}" stroke-linecap="round"/>`;
+  }
+  el.innerHTML = svg;
+}
+function drawMiniGauge(el, pct) {
+  if (!el) return;
+  const r = 18, cx = 24, cy = 22, sw = 5;
+  const total = Math.PI * r;
+  const clamp = Math.min(Math.max(pct, 0), 100);
+  const filled = (clamp / 100) * total;
+  el.innerHTML = `
+    <path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#e8d0d8" stroke-width="${sw}" stroke-linecap="round"/>
+    <path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#6B1A3A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${filled.toFixed(2)} ${(total-filled+0.3).toFixed(2)}"/>`;
+}
+
+// ════════════════════════════════════════════════════════
+// HOME SCREEN
+// ════════════════════════════════════════════════════════
+function goHome() {
+  activeTourId = null;
+  if (wowChart) { wowChart.destroy(); wowChart = null; }
+  document.getElementById('home-screen').style.display = '';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('tour-view').style.display = 'none';
+  renderHome();
+}
+
+function renderHome() {
+  const activeGrid = document.getElementById('active-tour-grid');
+  const archivedGrid = document.getElementById('archived-tour-grid');
+  const archivedSection = document.getElementById('archived-section');
+  activeGrid.innerHTML = '';
+  archivedGrid.innerHTML = '';
+
+  const active = Object.values(tours).filter(t => !t.archived);
+  const archived = Object.values(tours).filter(t => t.archived);
+
+  active.forEach(t => activeGrid.appendChild(makeTourCard(t)));
+
+  const addCard = document.createElement('button');
+  addCard.className = 'add-tour-card';
+  addCard.onclick = goSetup;
+  addCard.innerHTML = '<div class="add-tour-icon">＋</div><div class="add-tour-label">New tour</div>';
+  activeGrid.appendChild(addCard);
+
+  if (archived.length) {
+    archivedSection.style.display = '';
+    archived.forEach(t => archivedGrid.appendChild(makeTourCard(t)));
+  } else {
+    archivedSection.style.display = 'none';
+  }
+
+  // Draw mini gauges after render
+  setTimeout(() => {
+    Object.values(tours).forEach(tour => {
+      const bc = byCity(tour.shows || []);
+      const cities = cityOrder(tour.shows || []);
+      cities.forEach((city, i) => {
+        const d = bc[city];
+        const cap = tour.caps[city]?.sell || 0;
+        const numShows = d.shows.length;
+        const pct = (cap * numShows) > 0 ? (d.count / (cap * numShows) * 100) : 0;
+        const el = document.getElementById(`mg-${tour.id}-${i}`);
+        if (el) drawMiniGauge(el, pct);
+      });
+    });
+  }, 60);
+}
+
+function makeTourCard(tour) {
+  const bc = byCity(tour.shows || []);
+  const cities = cityOrder(tour.shows || []);
+  const totalSold = Object.values(bc).reduce((a, b) => a + b.count, 0);
+  const totalRev = Object.values(bc).reduce((a, b) => a + b.sales, 0);
+  const totalSellCap = cities.reduce((a, c) => {
+    const cap = tour.caps[c]?.sell || 0;
+    return a + cap * (bc[c]?.shows.length || 0);
+  }, 0);
+  const overallPct = totalSellCap > 0 ? (totalSold / totalSellCap * 100) : 0;
+  const tourBE = cities.reduce((a, c) => a + (tour.caps[c]?.beTickets || 0), 0);
+  const tourPot = cities.reduce((a, c) => a + (tour.caps[c]?.potGross || 0), 0);
+  const bePct = tourBE > 0 ? Math.min(100, totalSold / tourBE * 100) : 0;
+
+  const miniGauges = cities.slice(0, 6).map((c, i) => `
+    <div class="mini-gauge-item">
+      <svg id="mg-${tour.id}-${i}" viewBox="0 0 48 27" width="48" height="27"></svg>
+      <div class="mini-gauge-label">${c.split(' ')[0]}</div>
+    </div>`).join('');
+
+  const card = document.createElement('div');
+  card.className = 'tour-card';
+  card.onclick = () => openTour(tour.id);
+  card.innerHTML = `
+    <div class="tc-accent${tour.archived ? ' archived' : ''}"></div>
+    <div class="tc-body">
+      <div class="tc-artist">${tour.artist}</div>
+      <div class="tc-name">${tour.tourName}</div>
+      <div class="mini-gauge-row">${miniGauges}</div>
+      <div class="tc-stats">
+        <div class="tc-stat">
+          <div class="tc-stat-label">Tickets sold</div>
+          <div class="tc-stat-value">${totalSold.toLocaleString()}</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-label">% to cap</div>
+          <div class="tc-stat-value">${fmtPct(overallPct)}</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-label">Revenue</div>
+          <div class="tc-stat-value">${fmt$(totalRev)}</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-label">Markets</div>
+          <div class="tc-stat-value">${cities.length}</div>
+        </div>
+        <div class="tc-stat" style="${bePct>=100?'color:var(--green)':''}">
+          <div class="tc-stat-label">Breakeven</div>
+          <div class="tc-stat-value" style="font-size:12px">${bePct>=100?'✓ Reached':fmtPct(bePct)}</div>
+        </div>
+        <div class="tc-stat">
+          <div class="tc-stat-label">Potential</div>
+          <div class="tc-stat-value" style="font-size:12px">${fmt$(tourPot)}</div>
+        </div>
       </div>
-      <div class="sb-pct">${pct}%</div>
+    </div>
+    <div class="tc-footer">
+      <span class="tc-updated">Updated: ${tour.updatedAt || '—'}</span>
+      <div class="tc-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-xs btn-outline" onclick="downloadArchive('${tour.id}')">Archive file</button>
+        ${tour.archived
+          ? `<button class="btn btn-xs btn-outline" onclick="unarchiveTour('${tour.id}')">Unarchive</button>`
+          : `<button class="btn btn-xs btn-danger" onclick="archiveTour('${tour.id}')">Archive</button>`}
+      </div>
     </div>`;
-  }).join('');
-}
-function selectTour(id){activeTourId=id;activeTab='overview';renderSidebar();renderTour();}
-function goBack(){
-  activeTourId=null;renderSidebar();
-  document.getElementById('emptyState').classList.remove('hidden');
-  document.getElementById('tourContent').classList.add('hidden');
+  return card;
 }
 
-/* ── DATA HELPERS ── */
-function flatShows(tour){
-  const out=[];
-  for(const m of(tour.markets||[])){
-    const nights=m.nights||[];
-    if(!nights.length){
-      out.push({market:m.market,date:'TBD',type:'Solo',cap:+(m.sellable||0),sold:+(m.sold||0),presold:+(m.presold||0),price:+(m.price||tour.defaultPrice||0)});
+// ════════════════════════════════════════════════════════
+// OPEN / RENDER TOUR
+// ════════════════════════════════════════════════════════
+function openTour(id) {
+  activeTourId = id;
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('tour-view').style.display = '';
+  // Reset tabs
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab').classList.add('active');
+  document.getElementById('pane-sales').classList.add('active');
+  renderTourView();
+}
+
+function renderTourView() {
+  const tour = tours[activeTourId];
+  if (!tour) { goHome(); return; }
+  document.getElementById('th-title').textContent = `${tour.artist} — ${tour.tourName}`;
+  document.getElementById('th-sub').textContent = `${Object.keys(tour.caps || {}).length} markets · Last updated: ${tour.updatedAt || 'never'}`;
+  buildSales(tour);
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const ids = ['sales','byshow','wow','pacing'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + id).classList.add('active');
+  const tour = tours[activeTourId];
+  if (!tour) return;
+  if (id === 'byshow') buildByShow(tour);
+  if (id === 'wow') setTimeout(() => buildWoW(tour), 50);
+  if (id === 'pacing') buildPacing(tour);
+}
+
+// ════════════════════════════════════════════════════════
+// TICKET SALES TAB
+// ════════════════════════════════════════════════════════
+function buildSales(tour) {
+  const bc = byCity(tour.shows || []);
+  const cities = cityOrder(tour.shows || []);
+  const totalSold = Object.values(bc).reduce((a, b) => a + b.count, 0);
+  const totalRev  = Object.values(bc).reduce((a, b) => a + b.sales, 0);
+  const totalSellCap = cities.reduce((a, c) => {
+    const cap = tour.caps[c]?.sell || 0;
+    return a + cap * (bc[c]?.shows.length || 0);
+  }, 0);
+  const pct = totalSellCap > 0 ? (totalSold / totalSellCap * 100) : 0;
+  const tourBE = cities.reduce((a, c) => a + (tour.caps[c]?.beTickets || 0), 0);
+  const tourBeGross = cities.reduce((a, c) => a + (tour.caps[c]?.beGross || 0), 0);
+  const tourPot = cities.reduce((a, c) => a + (tour.caps[c]?.potGross || 0), 0);
+  const hasFin = tourBE > 0 || tourBeGross > 0;
+  const ticketsToTourBE = Math.max(0, tourBE - totalSold);
+  const grossToTourBE = Math.max(0, tourBeGross - totalRev);
+  const tourBEPctTix = tourBE > 0 ? Math.min(100, totalSold / tourBE * 100) : 0;
+  const tourBEPctGross = tourBeGross > 0 ? Math.min(100, totalRev / tourBeGross * 100) : 0;
+  const tourPotPct = tourPot > 0 ? Math.min(100, totalRev / tourPot * 100) : 0;
+
+  // KPI row
+  let kpiHTML = `
+    <div class="kpi"><div class="kpi-label">Tickets sold</div><div class="kpi-value">${totalSold.toLocaleString()}</div><div class="kpi-sub">${cities.length} markets · ${(tour.shows||[]).length} shows</div></div>
+    <div class="kpi"><div class="kpi-label">Gross revenue</div><div class="kpi-value">${fmt$(totalRev)}</div><div class="kpi-sub">from CSV uploads</div></div>
+    <div class="kpi"><div class="kpi-label">Sellable cap</div><div class="kpi-value">${totalSellCap.toLocaleString()}</div><div class="kpi-sub">all shows combined</div></div>
+    <div class="kpi"><div class="kpi-label">% to cap</div><div class="kpi-value">${fmtPct(pct)}</div><div class="kpi-sub">overall</div></div>`;
+  if (hasFin) {
+    kpiHTML += `
+      <div class="kpi ${tourBEPctTix>=100?'kpi-success':''}">
+        <div class="kpi-label">Tour BE tickets</div>
+        <div class="kpi-value" style="font-size:18px">${tourBE.toLocaleString()}</div>
+        <div class="kpi-sub">${totalSold.toLocaleString()} sold · ${ticketsToTourBE>0?ticketsToTourBE.toLocaleString()+' to go':'✓ Reached'}</div>
+      </div>
+      <div class="kpi ${tourBEPctGross>=100?'kpi-success':''}">
+        <div class="kpi-label">Tour BE gross</div>
+        <div class="kpi-value" style="font-size:18px">${fmt$(tourBeGross)}</div>
+        <div class="kpi-sub">${fmt$(totalRev)} earned · ${grossToTourBE>0?fmt$(grossToTourBE)+' to go':'✓ Reached'}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Tour potential gross</div>
+        <div class="kpi-value" style="font-size:18px">${fmt$(tourPot)}</div>
+        <div class="kpi-sub">${tourPotPct.toFixed(1)}% achieved</div>
+      </div>`;
+  }
+
+  // Financial progress bars
+  let finHTML = '';
+  if (hasFin) {
+    finHTML = `
+      <div class="section-label" style="margin-bottom:10px">Tour financial progress</div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div class="progress-label"><span>Tickets sold vs breakeven (${totalSold.toLocaleString()} of ${tourBE.toLocaleString()})</span><span>${tourBEPctTix.toFixed(1)}%</span></div>
+            <div class="progress-track" style="height:12px;border-radius:6px"><div class="progress-fill ${tourBEPctTix>=100?'green':'cw'}" style="width:${tourBEPctTix}%;height:12px;border-radius:6px"></div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${ticketsToTourBE>0?ticketsToTourBE.toLocaleString()+' more tickets to breakeven':'✓ Breakeven reached'}</div>
+          </div>
+          <div>
+            <div class="progress-label"><span>Gross vs breakeven (${fmt$(totalRev)} of ${fmt$(tourBeGross)})</span><span>${tourBEPctGross.toFixed(1)}%</span></div>
+            <div class="progress-track" style="height:12px;border-radius:6px"><div class="progress-fill ${tourBEPctGross>=100?'green':'cw'}" style="width:${tourBEPctGross}%;height:12px;border-radius:6px"></div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${grossToTourBE>0?fmt$(grossToTourBE)+' to breakeven':'✓ Breakeven reached'}</div>
+          </div>
+          <div>
+            <div class="progress-label"><span>Gross vs potential (${fmt$(totalRev)} of ${fmt$(tourPot)})</span><span>${tourPotPct.toFixed(1)}%</span></div>
+            <div class="progress-track" style="height:12px;border-radius:6px"><div class="progress-fill cw" style="width:${tourPotPct}%;height:12px;border-radius:6px"></div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">${fmt$(Math.max(0,tourPot-totalRev))} remaining to potential</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Gauge grid
+  let gaugeHTML = '<div class="gauge-grid">';
+  cities.forEach((city, i) => {
+    const d = bc[city] || { count: 0, sales: 0, shows: [] };
+    const cap = tour.caps[city]?.sell || 0;
+    const numShows = d.shows.length;
+    const sellCap = cap * numShows;
+    const p = sellCap > 0 ? (d.count / sellCap * 100) : 0;
+    const presaleTotal = d.shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
+    const publicTotal  = d.count - presaleTotal;
+    const presalePct   = sellCap > 0 ? (presaleTotal / sellCap * 100) : 0;
+    const publicPct    = sellCap > 0 ? (publicTotal / sellCap * 100) : 0;
+    const hasPresale   = presaleTotal > 0;
+    const gid = 'g-' + i + '-' + Date.now();
+    gaugeHTML += `
+      <div class="gauge-card">
+        <div class="gauge-name">${city}</div>
+        <svg id="${gid}" viewBox="0 0 110 58" width="110" height="58"></svg>
+        <div class="gauge-pct">${fmtPct(p)}</div>
+        <div class="gauge-detail">${d.count.toLocaleString()} of ${sellCap.toLocaleString()} sellable</div>
+        ${hasPresale ? `<div class="gauge-presale-note">
+          <span class="gauge-dot" style="background:#C8899A"></span>${presaleTotal.toLocaleString()} presale &nbsp;·&nbsp;
+          <span class="gauge-dot" style="background:#6B1A3A"></span>${publicTotal.toLocaleString()} public
+        </div>` : ''}
+        <div class="gauge-detail">${numShows} show${numShows!==1?'s':''} · ${fmt$(d.sales)}</div>
+      </div>`;
+    setTimeout(() => {
+      const el = document.getElementById(gid);
+      drawSplitGauge(el, presalePct, publicPct);
+    }, 40 + i * 20);
+  });
+  gaugeHTML += '</div>';
+
+  document.getElementById('pane-sales').innerHTML = `
+    <div class="kpi-row" id="kpi-row">${kpiHTML}</div>
+    ${finHTML}
+    <div class="section-label">% sold by market</div>
+    ${gaugeHTML}`;
+}
+
+// ════════════════════════════════════════════════════════
+// BY SHOW TAB
+// ════════════════════════════════════════════════════════
+function buildByShow(tour) {
+  const bc = byCity(tour.shows || []);
+  const cities = cityOrder(tour.shows || []);
+  const hasPresale = tour.presaleSnapshot && Object.keys(tour.presaleSnapshot).length > 0;
+  let sHTML = '', rHTML = '';
+
+  cities.forEach(city => {
+    const d = bc[city] || { count: 0, sales: 0, shows: [] };
+    const cap = tour.caps[city]?.sell || 0;
+    const shows = [...d.shows].sort((a, b) => a.date.localeCompare(b.date));
+
+    sHTML += `<div class="city-hdr">${city} <span>(${cap} sellable/show)</span></div>`;
+    if (hasPresale) {
+      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Presale</th><th class="r">Public</th><th class="r">Total</th><th class="r">% cap</th></tr></thead><tbody>`;
     } else {
-      for(const n of nights)for(const sh of(n.shows||[])){
-        out.push({market:m.market,date:n.date||'TBD',type:sh.type||'Solo',
-          cap:+(sh.cap||m.sellable||0),sold:+(sh.sold||0),presold:+(sh.presold||0),
-          price:+(sh.price||m.price||tour.defaultPrice||0)});
+      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Sold</th><th class="r">% to cap</th></tr></thead><tbody>`;
+    }
+
+    shows.forEach(s => {
+      const p = cap > 0 ? (s.count / cap * 100) : 0;
+      const w = Math.min(Math.round(p), 100);
+      const cls = p >= 85 ? 'high' : p < 35 ? 'low' : '';
+      const pre = getPresale(tour, s.date);
+      const pub = s.count - pre;
+      const barCell = `<div class="cap-bar-cell"><div class="cap-bar-track"><div class="cap-bar-fill ${cls}" style="width:${w}%"></div></div><span class="cap-pct">${fmtPct(p)}</span></div>`;
+      if (hasPresale) {
+        sHTML += `<tr>
+          <td>${fmtDate(s.date)}</td>
+          <td class="r" style="color:#9B4060">${pre.toLocaleString()}</td>
+          <td class="r">${pub.toLocaleString()}</td>
+          <td class="r"><strong>${s.count.toLocaleString()}</strong></td>
+          <td class="r">${barCell}</td></tr>`;
+      } else {
+        sHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${s.count.toLocaleString()}</td><td class="r">${barCell}</td></tr>`;
+      }
+    });
+    const ts = shows.reduce((a, b) => a + b.count, 0);
+    const tPre = shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
+    const tc = cap * shows.length;
+    if (hasPresale) {
+      sHTML += `<tr class="total-row"><td>Total</td><td class="r" style="color:#9B4060">${tPre.toLocaleString()}</td><td class="r">${(ts-tPre).toLocaleString()}</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+    } else {
+      sHTML += `<tr class="total-row"><td>Total</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+    }
+    sHTML += '</tbody></table></div>';
+
+    rHTML += `<div class="city-hdr">${city}</div>`;
+    rHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Revenue</th><th class="r">Avg / ticket</th></tr></thead><tbody>`;
+    shows.forEach(s => {
+      rHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${fmt$(s.sales)}</td><td class="r">${fmt$(s.count>0?s.sales/s.count:0)}</td></tr>`;
+    });
+    const tr = shows.reduce((a, b) => a + b.sales, 0);
+    const tc2 = shows.reduce((a, b) => a + b.count, 0);
+    rHTML += `<tr class="total-row"><td>Total</td><td class="r">${fmt$(tr)}</td><td class="r">${fmt$(tc2>0?tr/tc2:0)}</td></tr>`;
+    rHTML += '</tbody></table></div>';
+  });
+
+  document.getElementById('pane-byshow').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+      <div><div class="section-label">Ticket counts</div>${sHTML||'<p style="color:var(--muted);font-size:12px">No show data yet — upload a CSV</p>'}</div>
+      <div><div class="section-label">Revenue</div>${rHTML||''}</div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// WEEK OVER WEEK TAB
+// ════════════════════════════════════════════════════════
+function buildWoW(tour) {
+  const snapshots = tour.wowSnapshots || [];
+  const cities = cityOrder(tour.shows || []);
+  const short = c => c.replace('New York City','NYC').replace('Hudson Valley','HV').replace('Philadelphia','PHL').replace('Pittsburgh','PGH').replace('St. Louis','STL').replace('Nashville','NSH');
+  const chartCard = document.getElementById('wow-chart-card');
+  const tableEl = document.getElementById('wow-table-el');
+
+  if (snapshots.length < 2) {
+    if (wowChart) { wowChart.destroy(); wowChart = null; }
+    tableEl.querySelector('thead').innerHTML = '';
+    tableEl.querySelector('tbody').innerHTML = '';
+    chartCard.innerHTML = `
+      <div class="chart-title">Weekly tickets sold — new tickets each week</div>
+      <div style="text-align:center;padding:48px 20px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:12px">📊</div>
+        <div style="font-size:14px;margin-bottom:8px;color:var(--slate)">${snapshots.length===0?'No uploads yet':'Baseline set!'}</div>
+        <div style="font-size:12px;line-height:1.7">
+          ${snapshots.length===0
+            ? 'Upload your first CSV to set the baseline. Week over week movement will appear after your second upload.'
+            : `Baseline saved on ${snapshots[0].uploadedAt}.<br>Upload again next week and the chart will show new tickets sold.`}
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Build week map
+  const weekMap = {};
+  for (let i = 1; i < snapshots.length; i++) {
+    const prev = snapshots[i-1], curr = snapshots[i];
+    const ws = getWeekStart(curr.uploadDate);
+    if (!weekMap[ws]) { weekMap[ws] = {}; cities.forEach(c => weekMap[ws][c] = 0); }
+    cities.forEach(c => {
+      const diff = Math.max(0, (curr.totals[c]||0) - (prev.totals[c]||0));
+      weekMap[ws][c] = (weekMap[ws][c]||0) + diff;
+    });
+  }
+
+  const weeks = Object.keys(weekMap).sort();
+  if (!weeks.length) { chartCard.innerHTML += '<p style="color:var(--muted);font-size:12px;padding:16px">Upload again next week to see movement.</p>'; return; }
+
+  const legendHTML = cities.map((c, i) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${c}</div>`).join('');
+
+  chartCard.innerHTML = `
+    <div class="chart-title">Weekly tickets sold — new tickets each week (Mon–Sun)</div>
+    <div class="legend">${legendHTML}</div>
+    <div class="chart-wrap"><canvas id="wowChart"></canvas></div>`;
+
+  if (wowChart) { wowChart.destroy(); wowChart = null; }
+  const labels = weeks.map(w => new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  wowChart = new Chart(document.getElementById('wowChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: cities.map((c, i) => ({
+        label: c,
+        data: weeks.map(w => weekMap[w][c]||0),
+        backgroundColor: PALETTE[i%PALETTE.length],
+        borderRadius: 3
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        title: i => 'Week of ' + i[0].label,
+        label: i => `${i.dataset.label}: ${i.raw.toLocaleString()} new tickets`
+      }}},
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }}},
+        y: { stacked: true, ticks: { font: { size: 11 }, callback: v => v.toLocaleString()}, grid: { color: 'rgba(0,0,0,0.05)' }}
       }
     }
-  }
-  return out;
-}
-function mktShows(tour,market){return flatShows(tour).filter(s=>s.market===market);}
-function daysUntil(d){
-  if(!d||d==='TBD')return null;
-  const t=new Date(d),n=new Date();n.setHours(0,0,0,0);t.setHours(0,0,0,0);
-  return Math.max(0,Math.round((t-n)/86400000));
-}
-function calcVel(needed,shows){
-  const dates=shows.map(s=>s.date).filter(d=>d&&d!=='TBD').sort();
-  if(!dates.length||!needed)return{day:null,week:null};
-  const days=daysUntil(dates[0]);
-  if(!days)return{day:needed,week:needed*7};
-  return{day:Math.ceil(needed/days),week:Math.ceil(needed/(days/7))};
-}
-function pill(pct,cap){
-  if(!cap)return'<span class="pill p-none">No data</span>';
-  if(pct>=100)return'<span class="pill p-sold">Sold Out</span>';
-  if(pct>=90) return'<span class="pill p-great">Doing great</span>';
-  if(pct>=70) return'<span class="pill p-on">On track</span>';
-  if(pct>=50) return'<span class="pill p-attn">Needs attention</span>';
-  return'<span class="pill p-behind">Behind</span>';
-}
-function pBar(p,cls){
-  const c=cls||(p>=80?'fg-green':p>=50?'fg-amber':'fg-red');
-  return`<div class="pct-row"><div class="pct-track"><div class="pct-fill ${c}" style="width:${Math.min(p,100)}%"></div></div><span class="pct-val">${Math.round(p)}%</span></div>`;
-}
-function badg(type){return`<span class="badge ${({Early:'b-early',Late:'b-late',Solo:'b-solo'}[type]||'b-custom')}">${type}</span>`;}
-function N(n){return Math.round(n||0).toLocaleString();}
-function D(n){return'$'+Math.round(n||0).toLocaleString();}
-function noRow(n){return`<tr><td colspan="${n}" style="text-align:center;padding:20px;color:var(--ink-faint);font-size:12px">No data yet</td></tr>`;}
+  });
 
-/* ── RENDER TOUR ── */
-function renderTour(){
-  const tour=tours.find(t=>t.id===activeTourId);if(!tour){goBack();return;}
-  document.getElementById('emptyState').classList.add('hidden');
-  const c=document.getElementById('tourContent');c.classList.remove('hidden');
-  const shows=flatShows(tour);
-  const tCap=shows.reduce((s,x)=>s+x.cap,0),tSold=shows.reduce((s,x)=>s+x.sold,0),tPre=shows.reduce((s,x)=>s+x.presold,0);
-  const pct=tCap?Math.round(tSold/tCap*100):0;
-  c.innerHTML=`
-    <div class="pg-head">
-      <div class="pg-head-l">
-        <h2>${tour.artist}</h2>
-        <p>${tour.tourName} &nbsp;·&nbsp; ${tour.markets.length} market${tour.markets.length!==1?'s':''} &nbsp;·&nbsp; ${shows.length} show${shows.length!==1?'s':''} &nbsp;·&nbsp; On-sale: ${tour.onsale||'TBD'}${tour.archived?' &nbsp;·&nbsp; Archived':''}</p>
-      </div>
-      <div class="pg-head-r">
-        <button class="btn btn-ghost btn-sm" onclick="openEditTour('${tour.id}')">&#9998; Edit</button>
-        <button class="btn btn-ghost btn-sm" onclick="triggerCSV()">&#8679; CSV</button>
-        ${sheetsUrl?`<button class="btn btn-ghost btn-sm" onclick="loadFromSheets(false)">&#8635; Refresh</button>`:''}
-      </div>
-    </div>
-    <div class="tabs">
-      <div class="tab${activeTab==='overview'?' active':''}" onclick="switchTab('overview')">Overview</div>
-      <div class="tab${activeTab==='markets'?' active':''}" onclick="switchTab('markets')">By Market</div>
-      <div class="tab${activeTab==='shows'?' active':''}" onclick="switchTab('shows')">By Show</div>
-      <div class="tab${activeTab==='wow'?' active':''}" onclick="switchTab('wow')">Week over Week</div>
-      <div class="tab${activeTab==='pacing'?' active':''}" onclick="switchTab('pacing')">Pacing &amp; Goals</div>
-    </div>
-    <div class="tab-content">
-      <div class="tab-panel${activeTab==='overview'?' active':''}">${panelOverview(tour,shows,tCap,tSold,tPre,pct)}</div>
-      <div class="tab-panel${activeTab==='markets'?' active':''}">${panelMarkets(tour)}</div>
-      <div class="tab-panel${activeTab==='shows'?' active':''}">${panelShows(shows)}</div>
-      <div class="tab-panel${activeTab==='wow'?' active':''}">${panelWoW(tour)}</div>
-      <div class="tab-panel${activeTab==='pacing'?' active':''}">${panelPacing(tour)}</div>
-    </div>`;
-}
-function switchTab(t){activeTab=t;renderTour();}
-
-/* ── OVERVIEW ── */
-function panelOverview(tour,shows,tCap,tSold,tPre,pct){
-  const pub=tSold-tPre,remain=tCap-tSold;
-  const tBE=tour.markets.reduce((s,m)=>s+(+(m.beTickets||0)),0);
-  const dates=shows.map(s=>s.date).filter(d=>d&&d!=='TBD').sort();
-  const dLeft=dates.length?daysUntil(dates[0]):null;
-  const velBE=calcVel(Math.max(0,tBE-tSold),shows),velSO=calcVel(Math.max(0,tCap-tSold),shows);
-
-  const mktSummaryRows=tour.markets.map(m=>{
-    const ms=mktShows(tour,m.market),s=ms.reduce((a,x)=>a+x.sold,0),c=ms.reduce((a,x)=>a+x.cap,0)||(+(m.sellable||0));
-    const p=c?Math.round(s/c*100):0;
-    return`<tr><td><strong>${m.market}</strong></td><td class="r">${(m.nights||[]).length||1}</td><td class="r">${N(s)}</td><td class="r">${N(c)}</td><td style="min-width:120px">${pBar(p)}</td><td>${pill(p,c)}</td></tr>`;
+  // Table
+  const colTotals = cities.map(() => 0);
+  let tHead = `<tr><th>Week of</th>${cities.map(c=>`<th class="r">${short(c)}</th>`).join('')}<th class="r">Total new</th><th>Uploaded</th></tr>`;
+  let tBody = weeks.map(w => {
+    const vals = cities.map(c => weekMap[w][c]||0);
+    vals.forEach((v,i) => colTotals[i] += v);
+    const rowTotal = vals.reduce((a,b)=>a+b,0);
+    const snap = snapshots.find(s => getWeekStart(s.uploadDate)===w);
+    return `<tr>
+      <td>${new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+      ${vals.map(v=>`<td class="r">${v>0?v.toLocaleString():'—'}</td>`).join('')}
+      <td class="r" style="font-weight:600">${rowTotal.toLocaleString()}</td>
+      <td style="font-size:11px;color:var(--muted)">${snap?snap.uploadedAt:''}</td>
+    </tr>`;
   }).join('');
-
-  return`
-    <div class="kpi-row">
-      <div class="kpi accent">
-        <div class="kpi-label">Total Sold</div>
-        <div class="kpi-value">${N(tSold)}</div>
-        <div class="kpi-sub">${pct}% of sellable capacity</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Presale</div>
-        <div class="kpi-value">${N(tPre)}</div>
-        <div class="kpi-sub">${tCap?Math.round(tPre/tCap*100):0}% of cap</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Public Sale</div>
-        <div class="kpi-value">${N(pub)}</div>
-        <div class="kpi-sub">${tCap?Math.round(pub/tCap*100):0}% of cap</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Remaining</div>
-        <div class="kpi-value">${N(remain)}</div>
-        <div class="kpi-sub">${100-pct}% unsold</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Shows</div>
-        <div class="kpi-value">${shows.length}</div>
-        <div class="kpi-sub">${dLeft!==null?dLeft+'d to first show':tour.markets.length+' markets'}</div>
-      </div>
-    </div>
-
-    <div class="vel-strip">
-      <div class="vel-card">
-        <div class="vel-label-col">
-          <div class="vel-lbl">To Break Even</div>
-          <div class="vel-desc">${tBE?N(tBE)+' tickets needed across all markets':(tSold>=tBE&&tBE>0?'Breakeven reached':'Set BE tickets per market in Edit')}</div>
-          ${tBE?`<div style="margin-top:10px">${tSold>=tBE?'<span class="pill p-great">&#10003; Breakeven reached</span>':`<span style="font-size:11px;color:var(--ink-faint)">${N(Math.max(0,tBE-tSold))} still needed</span>`}</div>`:''}
-        </div>
-        <div class="vel-nums">
-          <div class="vel-num-item"><div class="vel-num">${velBE.day!==null?velBE.day:'—'}</div><div class="vel-unit">/ day</div></div>
-          <div class="vel-num-item"><div class="vel-num">${velBE.week!==null?velBE.week:'—'}</div><div class="vel-unit">/ week</div></div>
-        </div>
-      </div>
-      <div class="vel-card">
-        <div class="vel-label-col">
-          <div class="vel-lbl">To Sell Out</div>
-          <div class="vel-desc">${N(remain)} tickets remaining across ${N(tCap)} sellable</div>
-          <div style="margin-top:10px">${pill(pct,tCap)}</div>
-        </div>
-        <div class="vel-nums">
-          <div class="vel-num-item"><div class="vel-num">${velSO.day!==null?velSO.day:'—'}</div><div class="vel-unit">/ day</div></div>
-          <div class="vel-num-item"><div class="vel-num">${velSO.week!==null?velSO.week:'—'}</div><div class="vel-unit">/ week</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sec-hd"><div class="sec-title">Market Summary</div><div class="sec-line"></div></div>
-    <div class="tbl-card"><table class="tbl">
-      <thead><tr><th>Market</th><th class="r">Nights</th><th class="r">Sold</th><th class="r">Cap</th><th>% Sold</th><th>Status</th></tr></thead>
-      <tbody>${mktSummaryRows||noRow(6)}</tbody>
-    </table></div>
-
-    <div class="sec-hd" style="margin-top:22px"><div class="sec-title">Presale vs Public Breakdown</div><div class="sec-line"></div></div>
-    <div class="tbl-card" style="padding:18px 20px">
-      ${tour.markets.map(m=>{
-        const ms=mktShows(tour,m.market),s=ms.reduce((a,x)=>a+x.sold,0),pre=ms.reduce((a,x)=>a+x.presold,0),c=ms.reduce((a,x)=>a+x.cap,0)||(+(m.sellable||0));
-        return`<div style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:12px;font-weight:600;color:var(--ink)">${m.market}</span>
-            <span style="font-size:10px;color:var(--ink-faint)">${N(s)} sold of ${N(c)}</span>
-          </div>
-          <div class="dual-bar">
-            <div class="dual-row"><span class="dual-lbl">Presale</span><div class="dual-track"><div class="dual-pre" style="width:${c?Math.min(100,pre/c*100):0}%"></div></div><span class="dual-val">${N(pre)}</span></div>
-            <div class="dual-row"><span class="dual-lbl">Public</span><div class="dual-track"><div class="dual-pub" style="width:${c?Math.min(100,(s-pre)/c*100):0}%"></div></div><span class="dual-val">${N(s-pre)}</span></div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
+  const grandTotal = colTotals.reduce((a,b)=>a+b,0);
+  tBody += `<tr class="total-row"><td>Total</td>${colTotals.map(v=>`<td class="r">${v.toLocaleString()}</td>`).join('')}<td class="r">${grandTotal.toLocaleString()}</td><td></td></tr>`;
+  tableEl.querySelector('thead').innerHTML = tHead;
+  tableEl.querySelector('tbody').innerHTML = tBody;
 }
 
-/* ── BY MARKET ── */
-function panelMarkets(tour){
-  if(!tour.markets.length)return'<p style="color:var(--ink-faint)">No markets configured.</p>';
-  return`<div class="mkt-grid">`+tour.markets.map(m=>{
-    const ms=mktShows(tour,m.market),sold=ms.reduce((s,x)=>s+x.sold,0),pre=ms.reduce((s,x)=>s+x.presold,0);
-    const cap=ms.reduce((s,x)=>s+x.cap,0)||(+(m.sellable||0)),gross=ms.reduce((s,x)=>s+(x.sold*x.price),0);
-    const pct=cap?Math.round(sold/cap*100):0,beT=+(m.beTickets||0),multi=ms.length>1;
-    const nights=(m.nights||[]).length||1;
-    const velBE=calcVel(Math.max(0,beT-sold),ms),velSO=calcVel(Math.max(0,cap-sold),ms);
-    const bandColor=pct>=100?'var(--purple)':pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
-    return`<div class="mkt-card">
-      <div class="mkt-band" style="background:${bandColor}"></div>
-      <div class="mkt-head">
+// ════════════════════════════════════════════════════════
+// PACING & GOALS TAB
+// ════════════════════════════════════════════════════════
+function buildPacing(tour) {
+  const bc = byCity(tour.shows || []);
+  const cities = cityOrder(tour.shows || []);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let html = '';
+
+  cities.forEach(city => {
+    const d = bc[city] || { count: 0, sales: 0, shows: [] };
+    const cap = tour.caps[city] || { sell: 0, total: 0, beTickets: 0, beGross: 0, potGross: 0 };
+    const shows = [...d.shows].sort((a,b)=>a.date.localeCompare(b.date));
+    if (!shows.length) return;
+
+    const numShows = shows.length;
+    const totalSellCap = (cap.sell || 0) * numShows;
+    const totalSold = d.count;
+    const totalGross = d.sales;
+    const lastShowDate = new Date(shows[shows.length-1].date+'T12:00:00'); lastShowDate.setHours(0,0,0,0);
+    const daysLeft = Math.max(0, Math.round((lastShowDate - today) / 86400000));
+    const weeksLeft = daysLeft > 0 ? (daysLeft/7).toFixed(1) : '0';
+    const isPast = daysLeft === 0;
+
+    const beTickets = cap.beTickets || 0;
+    const beGross = cap.beGross || 0;
+    const potGross = cap.potGross || 0;
+    const ticketsToSellout = Math.max(0, totalSellCap - totalSold);
+    const ticketsToBreakeven = Math.max(0, beTickets - totalSold);
+    const grossToBreakeven = Math.max(0, beGross - totalGross);
+    const grossToPotential = Math.max(0, potGross - totalGross);
+    const dailyToBreakeven = (daysLeft>0 && ticketsToBreakeven>0) ? (ticketsToBreakeven/daysLeft).toFixed(1) : '—';
+    const weeklyToBreakeven = (daysLeft>0 && ticketsToBreakeven>0) ? Math.ceil(ticketsToBreakeven/(daysLeft/7)) : '—';
+    const dailyToSellout = (daysLeft>0 && ticketsToSellout>0) ? (ticketsToSellout/daysLeft).toFixed(1) : '—';
+    const weeklyToSellout = (daysLeft>0 && ticketsToSellout>0) ? Math.ceil(ticketsToSellout/(daysLeft/7)) : '—';
+
+    const beTicketPct = beTickets>0 ? Math.min(100, totalSold/beTickets*100) : 0;
+    const beGrossPct  = beGross>0  ? Math.min(100, totalGross/beGross*100)  : 0;
+    const potGrossPct = potGross>0 ? Math.min(100, totalGross/potGross*100) : 0;
+    const capPct = totalSellCap>0 ? Math.min(100, totalSold/totalSellCap*100) : 0;
+    const hasTargets = beTickets>0 || beGross>0 || potGross>0;
+
+    let urgency = '', urgencyClass = '';
+    if (!isPast && daysLeft>0) {
+      if (beTicketPct>=100) { urgency='✓ Breakeven reached'; urgencyClass='green'; }
+      else if (daysLeft<=14) { urgency='Urgent'; urgencyClass='red'; }
+      else if (daysLeft<=30) { urgency='Watch closely'; urgencyClass='amber'; }
+      else { urgency='On track'; urgencyClass='green'; }
+    } else if (isPast) { urgency='Run complete'; urgencyClass='green'; }
+
+    html += `<div class="pacing-market">
+      <div class="pacing-market-hdr">
         <div>
-          <div class="mkt-name">${m.market}</div>
-          <div class="mkt-meta">${nights} night${nights!==1?'s':''} &nbsp;·&nbsp; ${ms.length} show${ms.length!==1?'s':''} &nbsp;·&nbsp; Sellable: ${N(cap)} &nbsp;·&nbsp; Total cap: ${N(m.total||cap)}</div>
+          <h3>${city}&nbsp;<span class="urgency-chip ${urgencyClass}">${urgency}</span></h3>
+          <div class="hdr-meta">${numShows} show${numShows!==1?'s':''} · Last show: ${fmtDate(shows[shows.length-1].date)} · ${isPast?'Run complete':`${daysLeft} days / ${weeksLeft} weeks remaining`}</div>
         </div>
-        ${pill(pct,cap)}
       </div>
-      <div class="mkt-body">
-        <div class="mkt-kpis">
-          <div class="mkt-kpi"><div class="mkt-kpi-lbl">Sold</div><div class="mkt-kpi-val">${N(sold)}</div></div>
-          <div class="mkt-kpi"><div class="mkt-kpi-lbl">Presale</div><div class="mkt-kpi-val">${N(pre)}</div></div>
-          <div class="mkt-kpi"><div class="mkt-kpi-lbl">Public</div><div class="mkt-kpi-val">${N(sold-pre)}</div></div>
-          <div class="mkt-kpi"><div class="mkt-kpi-lbl">Remaining</div><div class="mkt-kpi-val">${N(cap-sold)}</div></div>
-          <div class="mkt-kpi"><div class="mkt-kpi-lbl">Gross</div><div class="mkt-kpi-val">${D(gross)}</div></div>
-        </div>
-        <div class="mkt-bars">
-          <div>
-            <div class="mkt-bar-lbl">% Sold to capacity</div>${pBar(pct)}
-            <div class="mkt-bar-lbl" style="margin-top:10px">% Remaining to sell out</div>${pBar(Math.max(0,100-pct),'fg-red')}
-          </div>
-          <div>
-            <div class="mkt-bar-lbl">Presale vs public</div>
-            <div class="dual-bar">
-              <div class="dual-row"><span class="dual-lbl">Presale</span><div class="dual-track"><div class="dual-pre" style="width:${cap?Math.min(100,pre/cap*100):0}%"></div></div><span class="dual-val">${N(pre)}</span></div>
-              <div class="dual-row"><span class="dual-lbl">Public</span><div class="dual-track"><div class="dual-pub" style="width:${cap?Math.min(100,(sold-pre)/cap*100):0}%"></div></div><span class="dual-val">${N(sold-pre)}</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="mkt-vels">
-          <div class="mkt-vel">
-            <div class="vel-lbl">To Breakeven${beT?' — '+N(beT)+' tix':''}</div>
-            <div style="display:flex;gap:16px;margin-top:8px">
-              <div><div class="vel-num" style="font-size:20px">${velBE.day!==null?velBE.day:'—'}</div><div class="vel-unit">/ day</div></div>
-              <div><div class="vel-num" style="font-size:20px">${velBE.week!==null?velBE.week:'—'}</div><div class="vel-unit">/ week</div></div>
-            </div>
-            ${beT?`<div style="margin-top:8px">${sold>=beT?'<span class="pill p-great">&#10003; Reached</span>':`<span style="font-size:10px;color:var(--ink-faint)">${N(Math.max(0,beT-sold))} more needed</span>`}</div>`:''}
-          </div>
-          <div class="mkt-vel">
-            <div class="vel-lbl">To Sell Out — ${N(cap)} sellable</div>
-            <div style="display:flex;gap:16px;margin-top:8px">
-              <div><div class="vel-num" style="font-size:20px">${velSO.day!==null?velSO.day:'—'}</div><div class="vel-unit">/ day</div></div>
-              <div><div class="vel-num" style="font-size:20px">${velSO.week!==null?velSO.week:'—'}</div><div class="vel-unit">/ week</div></div>
-            </div>
-          </div>
-        </div>
-        ${multi?`<div style="margin-top:16px">
-          <div style="font-size:9px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Show Breakdown</div>
-          <table class="tbl" style="margin:0"><thead><tr><th>Date</th><th>Type</th><th class="r">Cap</th><th class="r">Sold</th><th class="r">Presale</th><th class="r">Public</th><th>% Sold</th><th class="r">Gross</th><th>Status</th></tr></thead>
-          <tbody>${ms.map(sh=>{const sp=sh.cap?Math.round(sh.sold/sh.cap*100):0;return`<tr><td>${sh.date}</td><td>${badg(sh.type)}</td><td class="r">${N(sh.cap)}</td><td class="r">${N(sh.sold)}</td><td class="r">${N(sh.presold)}</td><td class="r">${N(sh.sold-sh.presold)}</td><td style="min-width:100px">${pBar(sp)}</td><td class="r">${D(sh.sold*sh.price)}</td><td>${pill(sp,sh.cap)}</td></tr>`;}).join('')}</tbody>
-          </table></div>`:''}
-        ${m.comment?`<div class="note-bar">&#128221; ${m.comment}</div>`:''}
-      </div>
-    </div>`;
-  }).join('')+'</div>';
-}
+      <div class="pacing-body">`;
 
-/* ── BY SHOW ── */
-function panelShows(shows){
-  const rows=shows.map(sh=>{const p=sh.cap?Math.round(sh.sold/sh.cap*100):0;return`<tr><td><strong>${sh.market}</strong></td><td>${sh.date}</td><td>${badg(sh.type)}</td><td class="r">${N(sh.cap)}</td><td class="r">${N(sh.presold)}</td><td class="r">${N(sh.sold-sh.presold)}</td><td class="r">${N(sh.sold)}</td><td style="min-width:100px">${pBar(p)}</td><td class="r">${D(sh.sold*sh.price)}</td><td>${pill(p,sh.cap)}</td></tr>`;}).join('');
-  return`<div class="tbl-card"><table class="tbl">
-    <thead><tr><th>Market</th><th>Date</th><th>Show</th><th class="r">Cap</th><th class="r">Presale</th><th class="r">Public</th><th class="r">Sold</th><th>% Sold</th><th class="r">Gross</th><th>Status</th></tr></thead>
-    <tbody>${rows||noRow(10)}</tbody></table></div>`;
-}
-
-/* ── WEEK OVER WEEK ── */
-function panelWoW(tour){
-  const history=tour.salesHistory||[],recent=history.slice(-8);
-  let chart='';
-  if(!recent.length){
-    chart=`<div class="wow-chart-card" style="text-align:center;padding:32px"><div class="wow-chart-lbl">No Snapshots Yet</div><p style="font-size:12px;color:var(--ink-faint);margin-top:6px">Each CSV upload creates a data point. Upload weekly to build your history.</p></div>`;
-  } else {
-    const maxV=Math.max(...recent.map(s=>(s.markets||[]).reduce((a,m)=>a+(m.sold||0),0)),1);
-    const bars=recent.map(s=>{
-      const tot=(s.markets||[]).reduce((a,m)=>a+(m.sold||0),0),h=Math.round(tot/maxV*90);
-      return`<div class="chart-col">
-        <div class="chart-bar-outer"><div class="chart-bar" style="height:${Math.max(h,3)}px" title="${s.date}: ${N(tot)} sold"></div></div>
-        <div class="chart-bar-val">${N(tot)}</div>
-        <div class="chart-bar-lbl">${(s.date||'').slice(5)}</div>
+    if (!hasTargets) {
+      html += `<div class="no-targets-note">
+        No financial targets set for this market. Enter below — saves automatically.
+        <div class="inline-target-edit">
+          <div class="inline-edit-field"><label>BE tickets</label><input type="number" id="be-t-${slug(city)}" placeholder="e.g. 560"></div>
+          <div class="inline-edit-field"><label>BE gross ($)</label><input type="number" id="be-g-${slug(city)}" placeholder="e.g. 98000"></div>
+          <div class="inline-edit-field"><label>Potential gross ($)</label><input type="number" id="pot-${slug(city)}" placeholder="e.g. 163000"></div>
+        </div>
+        <button class="inline-save-btn" onclick="saveInlineTargets('${activeTourId}','${city}')">Save targets →</button>
       </div>`;
-    }).join('');
-    chart=`<div class="wow-chart-card"><div class="wow-chart-lbl">Total Tickets Sold — ${recent.length} Snapshots</div><div class="chart-bars">${bars}</div></div>`;
-  }
-  const rows=tour.markets.map(m=>{
-    const curr=mktShows(tour,m.market).reduce((s,x)=>s+x.sold,0);
-    const prev=history.length>=2?((history[history.length-2].markets||[]).find(x=>x.market===m.market)?.sold||0):curr;
-    const d=curr-prev,p=prev?Math.round(d/prev*100):0;
-    return`<tr><td><strong>${m.market}</strong></td><td class="r">${N(prev)}</td><td class="r">${N(curr)}</td>
-      <td class="r"><span style="font-weight:700;color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?'+':''}${N(d)}</span></td>
-      <td class="r"><span style="font-weight:700;color:${p>=0?'var(--green)':'var(--red)'}">${p>=0?'+':''}${p}%</span></td></tr>`;
-  }).join('');
-  return`${chart}<div class="tbl-card"><table class="tbl">
-    <thead><tr><th>Market</th><th class="r">Last Snapshot</th><th class="r">Current</th><th class="r">&#916; Tickets</th><th class="r">&#916; %</th></tr></thead>
-    <tbody>${rows||noRow(5)}</tbody></table></div>`;
-}
+    }
 
-/* ── PACING & GOALS ── */
-function panelPacing(tour){
-  const cards=tour.markets.map(m=>{
-    const ms=mktShows(tour,m.market),sold=ms.reduce((s,x)=>s+x.sold,0),cap=ms.reduce((s,x)=>s+x.cap,0)||(+(m.sellable||0));
-    const gross=ms.reduce((s,x)=>s+(x.sold*x.price),0),pct=cap?Math.round(sold/cap*100):0;
-    const beT=+(m.beTickets||0),beG=+(m.beGross||0),potG=+(m.potGross||0);
-    const velBE=calcVel(Math.max(0,beT-sold),ms);
-    const barColor=pct>=80?'fg-green':pct>=50?'fg-amber':'fg-red';
-    return`<div class="pac-card">
-      <div class="pac-card-head">
-        <span class="pac-name">${m.market}</span>
-        ${pill(pct,cap)}
-      </div>
-      <div class="pac-body">
-        <div class="pct-row" style="margin-bottom:14px">
-          <div class="pct-track" style="height:7px"><div class="pct-fill ${barColor}" style="width:${Math.min(pct,100)}%"></div></div>
-          <span class="pct-val">${pct}%</span>
-        </div>
-        <div class="pac-row"><span class="pac-lbl">Sold / Cap</span><span class="pac-val">${N(sold)} / ${N(cap)}</span></div>
-        ${beT?`<div class="pac-row"><span class="pac-lbl">Breakeven (${N(beT)} tix)</span><span class="pac-val" style="color:${sold>=beT?'var(--green)':'var(--amber)'}">${sold>=beT?'&#10003; Reached':'Need '+N(Math.max(0,beT-sold))}</span></div>`:''}
-        ${beG?`<div class="pac-row"><span class="pac-lbl">BE Gross</span><span class="pac-val">${D(beG)}</span></div>`:''}
-        ${potG?`<div class="pac-row"><span class="pac-lbl">Potential Gross</span><span class="pac-val">${D(potG)}</span></div>`:''}
-        <div class="pac-row"><span class="pac-lbl">Current Gross</span><span class="pac-val">${D(gross)}</span></div>
-        ${velBE.day!==null?`<div class="pac-row"><span class="pac-lbl">To BE: /day · /wk</span><span class="pac-val">${velBE.day} · ${velBE.week}</span></div>`:''}
-        ${m.comment?`<div class="note-bar" style="font-size:10px;margin-top:10px">&#128221; ${m.comment}</div>`:''}
-      </div>
+    html += `<div class="progress-section">`;
+    if (beTickets>0) {
+      const bc2 = beTicketPct>=100?'green':beTicketPct>=70?'cw':'amber';
+      html += `<div class="progress-label"><span>Tickets to breakeven (${totalSold.toLocaleString()} of ${beTickets.toLocaleString()})</span><span>${beTicketPct.toFixed(1)}%</span></div>
+        <div class="progress-track"><div class="progress-fill ${bc2}" style="width:${beTicketPct}%"></div></div>`;
+    }
+    if (beGross>0) {
+      const bc3 = beGrossPct>=100?'green':beGrossPct>=70?'cw':'amber';
+      html += `<div class="progress-label" style="margin-top:10px"><span>Gross to breakeven (${fmt$(totalGross)} of ${fmt$(beGross)})</span><span>${beGrossPct.toFixed(1)}%</span></div>
+        <div class="progress-track"><div class="progress-fill ${bc3}" style="width:${beGrossPct}%"></div></div>`;
+    }
+    if (potGross>0) {
+      html += `<div class="progress-label" style="margin-top:10px"><span>Gross to potential (${fmt$(totalGross)} of ${fmt$(potGross)})</span><span>${potGrossPct.toFixed(1)}%</span></div>
+        <div class="progress-track"><div class="progress-fill cw" style="width:${potGrossPct}%"></div></div>`;
+    }
+    html += `</div>`;
+
+    // Presale summary
+    const presaleCityTotal = shows.reduce((a,s)=>a+getPresale(tour,s.date),0);
+    if (presaleCityTotal>0) {
+      const pctOfSold = totalSold>0?(presaleCityTotal/totalSold*100).toFixed(1):0;
+      const pctOfCap = totalSellCap>0?(presaleCityTotal/totalSellCap*100).toFixed(1):0;
+      html += `<div class="presale-summary">
+        <div class="presale-summary-item"><span class="gauge-dot" style="background:#C8899A;margin-right:4px;vertical-align:middle"></span>Presale locked: <strong>${tour.presaleLockedAt||'—'}</strong></div>
+        <div class="presale-summary-item">Presale: <strong>${presaleCityTotal.toLocaleString()}</strong></div>
+        <div class="presale-summary-item">Public: <strong>${(totalSold-presaleCityTotal).toLocaleString()}</strong></div>
+        <div class="presale-summary-item">Presale = <strong>${pctOfSold}%</strong> of sold</div>
+        <div class="presale-summary-item">Presale = <strong>${pctOfCap}%</strong> of cap</div>
+      </div>`;
+    }
+
+    // Targets grid
+    html += `<div class="pacing-targets">
+      <div class="pacing-target">
+        <div class="pacing-target-label">Sold so far</div>
+        <div class="pacing-target-value">${totalSold.toLocaleString()}</div>
+        <div class="pacing-target-sub">of ${totalSellCap.toLocaleString()} sellable (${capPct.toFixed(1)}%)</div>
+      </div>`;
+
+    if (beTickets>0) {
+      const cls2 = ticketsToBreakeven===0?'green':'';
+      html += `<div class="pacing-target ${cls2}">
+        <div class="pacing-target-label">Still need (breakeven)</div>
+        <div class="pacing-target-value">${ticketsToBreakeven>0?ticketsToBreakeven.toLocaleString():'✓ Done'}</div>
+        <div class="pacing-target-sub">${ticketsToBreakeven>0?fmt$(grossToBreakeven)+' gross to go':fmt$(Math.max(0,totalGross-beGross))+' over BE'}</div>
+      </div>`;
+    }
+
+    html += `<div class="pacing-target">
+      <div class="pacing-target-label">Still need (sellout)</div>
+      <div class="pacing-target-value">${ticketsToSellout>0?ticketsToSellout.toLocaleString():'✓ Sold out'}</div>
+      <div class="pacing-target-sub">${ticketsToSellout>0?fmt$(grossToPotential)+' to potential':'Congratulations!'}</div>
     </div>`;
-  }).join('');
-  return`<div class="pac-grid">${cards||'<p style="color:var(--ink-faint)">No markets yet.</p>'}</div>`;
+
+    if (daysLeft>0 && beTickets>0 && ticketsToBreakeven>0) {
+      html += `<div class="pacing-target ${daysLeft<=14?'amber':''}">
+        <div class="pacing-target-label">Daily pace (breakeven)</div>
+        <div class="pacing-target-value">${dailyToBreakeven}</div>
+        <div class="pacing-target-sub">${weeklyToBreakeven}/week to BE</div>
+      </div>`;
+    }
+    if (daysLeft>0 && ticketsToSellout>0) {
+      html += `<div class="pacing-target">
+        <div class="pacing-target-label">Daily pace (sellout)</div>
+        <div class="pacing-target-value">${dailyToSellout}</div>
+        <div class="pacing-target-sub">${weeklyToSellout}/week to sellout</div>
+      </div>`;
+    }
+
+    html += `</div>`;
+
+    // Per-show countdown
+    html += `<hr class="section-divider"><div class="section-label">Per-show countdown</div><div class="show-pacing-grid">`;
+    shows.forEach(show => {
+      const showDate = new Date(show.date+'T12:00:00'); showDate.setHours(0,0,0,0);
+      const showDays = Math.max(0, Math.round((showDate-today)/86400000));
+      const showCap = cap.sell||0;
+      const showPct = showCap>0?(show.count/showCap*100).toFixed(1):'0.0';
+      const showLeft = Math.max(0, showCap-show.count);
+      const label = showDays===0?'Today':showDays===1?'Tomorrow':`${showDays} days away`;
+      html += `<div class="show-pacing-card">
+        <div class="show-pacing-date">${fmtDate(show.date)}</div>
+        <div class="show-pacing-row"><span>Sold</span><span>${show.count} / ${showCap} (${showPct}%)</span></div>
+        <div class="show-pacing-row"><span>Revenue</span><span>${fmt$(show.sales)}</span></div>
+        <div class="show-pacing-row"><span>Remaining</span><span>${showLeft.toLocaleString()}</span></div>
+        <div class="show-pacing-row"><span>Days to show</span><span>${label}</span></div>
+      </div>`;
+    });
+    html += `</div></div></div>`;
+
+    if (tour.caps[city]?.comment) {
+      html += `<div style="font-size:11px;color:var(--muted);padding:8px 18px 14px;font-style:italic">Note: ${tour.caps[city].comment}</div>`;
+    }
+  });
+
+  if (!html) html = '<p style="color:var(--muted);font-size:12px">Upload a CSV to see pacing data.</p>';
+  document.getElementById('pacing-content').innerHTML = html;
 }
 
-/* ── MODAL ── */
-function openNewTour(){
-  editingId=null;
-  document.getElementById('modalTitle').textContent='New Tour';
-  document.getElementById('modalSaveBtn').textContent='Create Tour';
-  document.getElementById('archiveBtn').style.display='none';
-  ['f_artist','f_tourName','f_keyword','f_presale','f_onsale','f_price'].forEach(id=>document.getElementById(id).value='');
-  mktData=[];renderMktCards();
-  document.getElementById('tourModal').classList.add('open');
+function saveInlineTargets(tourId, city) {
+  const key = slug(city);
+  const beT = parseInt(document.getElementById('be-t-'+key)?.value)||0;
+  const beG = parseFloat(document.getElementById('be-g-'+key)?.value)||0;
+  const pot = parseFloat(document.getElementById('pot-'+key)?.value)||0;
+  if (!tours[tourId]?.caps?.[city]) return;
+  tours[tourId].caps[city].beTickets = beT;
+  tours[tourId].caps[city].beGross   = beG;
+  tours[tourId].caps[city].potGross  = pot;
+  saveTours();
+  buildPacing(tours[tourId]);
+  toast('✓ Targets saved for ' + city, 'ok');
 }
-function openEditTour(id){
-  const t=tours.find(x=>x.id===id);if(!t)return;
-  editingId=id;
-  document.getElementById('modalTitle').textContent='Edit — '+t.artist;
-  document.getElementById('modalSaveBtn').textContent='Save Changes';
-  document.getElementById('archiveBtn').style.display=t.archived?'none':'';
-  document.getElementById('f_artist').value=t.artist||'';
-  document.getElementById('f_tourName').value=t.tourName||'';
-  document.getElementById('f_keyword').value=t.keyword||'';
-  document.getElementById('f_presale').value=t.presale||'';
-  document.getElementById('f_onsale').value=t.onsale||'';
-  document.getElementById('f_price').value=t.defaultPrice||'';
-  mktData=JSON.parse(JSON.stringify(t.markets));renderMktCards();
-  document.getElementById('tourModal').classList.add('open');
+
+// ════════════════════════════════════════════════════════
+// CSV INGESTION
+// ════════════════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const hdr = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+  const dateI = hdr.findIndex(h => h.includes('event start')||h==='date'||h.includes('start'));
+  const locI  = hdr.findIndex(h => h.includes('location')||h==='market'||h==='city');
+  const cntI  = hdr.findIndex(h => h==='# sales'||h==='count'||h==='sold'||h==='tickets'||(h.includes('ticket')&&!h.includes('net'))||h==='# sales');
+  const revI  = hdr.findIndex(h => h==='revenue');
+  const netI  = hdr.findIndex(h => h==='net sales');
+  const salI  = revI>=0?revI:(netI>=0?netI:hdr.findIndex(h=>h.includes('gross')||h==='sales'));
+  if (dateI<0||locI<0||cntI<0) { console.warn('CSV headers:', hdr); return null; }
+  const shows = [];
+  for (let i=1; i<lines.length; i++) {
+    const cols = lines[i].split(',');
+    if (!cols[dateI]||!cols[locI]) continue;
+    const typeI = hdr.findIndex(h=>h.includes('item type')||h==='type');
+    if (typeI>=0 && cols[typeI]?.trim().toLowerCase()==='fee') continue;
+    const raw = cols[dateI].trim().replace(/"/g,'');
+    let iso = raw;
+    if (raw.includes('/')) { const[m,d,y]=raw.split('/'); iso=`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+    shows.push({
+      date: iso,
+      city: cols[locI].trim().replace(/"/g,''),
+      count: parseInt(cols[cntI])||0,
+      sales: salI>=0?(parseFloat(cols[salI])||0):0
+    });
+  }
+  return shows;
 }
-function closeModal(){document.getElementById('tourModal').classList.remove('open');}
-function saveTour(){
-  const artist=document.getElementById('f_artist').value.trim(),tourName=document.getElementById('f_tourName').value.trim();
-  if(!artist||!tourName){showToast('Artist and Tour Name required','error');return;}
-  if(!mktData.length){showToast('Add at least one market','error');return;}
-  const prev=editingId?tours.find(t=>t.id===editingId):null;
-  const data={id:editingId||'t_'+Date.now(),artist,tourName,
-    keyword:document.getElementById('f_keyword').value.trim(),
-    presale:document.getElementById('f_presale').value,
-    onsale:document.getElementById('f_onsale').value,
-    defaultPrice:document.getElementById('f_price').value,
-    markets:JSON.parse(JSON.stringify(mktData)),
-    salesHistory:prev?.salesHistory||[],archived:prev?.archived||false};
-  if(editingId)tours[tours.findIndex(t=>t.id===editingId)]=data;
-  else tours.push(data);
-  persistData();closeModal();activeTourId=data.id;renderSidebar();renderTour();
-  showToast(editingId?'Tour updated':'Tour created ✓','success');
-}
-function archiveTour(){
-  showConfirm('Archive this tour?','It will move to the Archive tab and can be restored anytime.',()=>{
-    const t=tours.find(x=>x.id===editingId);
-    if(t){t.archived=true;persistData();closeModal();renderSidebar();goBack();showToast('Tour archived');}
+
+function findTourByFilename(filename) {
+  const fn = filename.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+  return Object.values(tours).find(t => {
+    const kw = (t.keyword||t.artist).toLowerCase().replace(/[^a-z0-9]+/g,'_');
+    return fn.includes(kw) || fn.includes(t.artist.toLowerCase().replace(/[^a-z0-9]+/g,'_'));
   });
 }
 
-/* ── MKT BUILDER ── */
-function renderMktCards(){
-  const el=document.getElementById('mktCards');
-  if(!mktData.length){el.innerHTML='<div style="padding:14px 14px;font-size:11px;color:var(--ink-faint)">No markets yet.</div>';return;}
-  el.innerHTML=mktData.map((m,mi)=>buildMktCard(m,mi)).join('');
+function handleGlobalCSV(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const shows = parseCSV(ev.target.result);
+    if (!shows) { toast('⚠ Could not parse CSV — check column names', 'err'); return; }
+    const tour = findTourByFilename(file.name);
+    if (!tour) { toast('⚠ No tour matched "' + file.name + '" — check keyword', 'err'); return; }
+    showModal('Confirm CSV update', `Update "${tour.artist}" with ${shows.length} records from ${file.name}?`, () => applyCSV(tour.id, shows, file.name));
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 }
-function buildMktCard(m,mi){
-  const def=MKT[m.market],hasCfg=def?.configs,ci=+(m._ci||0);
-  let phS='',phT='';
-  if(def){if(hasCfg){phS=def.configs[ci]?.sellable||'';phT=def.configs[ci]?.total||'';}else{phS=def.sellable||'';phT=def.total||'';}}
-  const cfgBar=hasCfg?`<div class="mb-cfg-bar"><label>Room Config</label><select onchange="applyConfig(${mi},this.value)">${def.configs.map((c,x)=>`<option value="${x}"${x===ci?' selected':''}>${c.label}</option>`).join('')}</select></div>`:'';
-  const nights=(m.nights||[]).map((n,ni)=>buildNight(mi,n,ni)).join('');
-  return`<div class="mb-card">
-    ${cfgBar}
-    <div class="mb-row">
-      <select onchange="mktSel(${mi},this.value)"><option value="">— Select Market —</option>${ALL_MKTS.map(mk=>`<option${mk===m.market?' selected':''}>${mk}</option>`).join('')}</select>
-      <input type="number" placeholder="${phS}" value="${m.sellable||''}" onchange="mF(${mi},'sellable',this.value)" title="Default: ${phS}">
-      <input type="number" placeholder="${phT}" value="${m.total||''}" onchange="mF(${mi},'total',this.value)" title="Default: ${phT}">
-      <input type="number" placeholder="BE tickets" value="${m.beTickets||''}" onchange="mF(${mi},'beTickets',this.value)">
-      <input type="number" placeholder="BE gross $" value="${m.beGross||''}" onchange="mF(${mi},'beGross',this.value)">
-      <input type="number" placeholder="Pot. gross $" value="${m.potGross||''}" onchange="mF(${mi},'potGross',this.value)">
-      <button class="mb-rm" onclick="rmM(${mi})" title="Remove market">&times;</button>
-    </div>
-    <div class="mb-nights">
-      <div class="mb-nights-hd">
-        <span class="mb-nights-lbl">Nights &amp; Shows</span>
-        <button class="add-night-btn" onclick="addNight(${mi})">+ Add Night</button>
-      </div>
-      <div id="nights_${mi}">${nights||'<div style="font-size:10px;color:var(--ink-faint);padding:2px 0">No nights yet.</div>'}</div>
-    </div>
-    <div class="mb-comment">
-      <label style="display:block;margin-bottom:4px;font-size:9px">Market Notes</label>
-      <textarea placeholder="e.g. Co-promoted · Partial standing · Special guest · Comp blocks" onchange="mF(${mi},'comment',this.value)">${m.comment||''}</textarea>
-    </div>
-  </div>`;
-}
-function buildNight(mi,n,ni){
-  const shows=n.shows||[],canAdd=shows.length<2;
-  return`<div class="night-card">
-    <div class="night-head">
-      <span class="night-num">Night ${ni+1}</span>
-      <input type="date" value="${n.date||''}" onchange="nF(${mi},${ni},'date',this.value)">
-      <div class="night-head-r">
-        ${canAdd?`<button class="add-show-link" onclick="addShow(${mi},${ni})">+ ${shows.length?'Add 2nd Show':'Add Show'}</button>`:''}
-        <button class="rm-night" onclick="rmN(${mi},${ni})" title="Remove">&times;</button>
-      </div>
-    </div>
-    <div class="night-body">
-      ${shows.length?'<div class="show-hdr-row"><span>Type</span><span>Cap</span><span>Sold</span><span>Presale</span><span>Price $</span><span></span></div>':''}
-      ${shows.map((sh,si)=>`<div class="show-slot">
-        <select onchange="shF(${mi},${ni},${si},'type',this.value)">${['Early','Late','Solo','Custom'].map(t=>`<option${t===sh.type?' selected':''}>${t}</option>`).join('')}</select>
-        <input type="number" placeholder="Cap"     value="${sh.cap    ||''}" onchange="shF(${mi},${ni},${si},'cap',this.value)">
-        <input type="number" placeholder="Sold"    value="${sh.sold   ||''}" onchange="shF(${mi},${ni},${si},'sold',this.value)">
-        <input type="number" placeholder="Presale" value="${sh.presold||''}" onchange="shF(${mi},${ni},${si},'presold',this.value)">
-        <input type="number" placeholder="Price"   value="${sh.price  ||''}" onchange="shF(${mi},${ni},${si},'price',this.value)">
-        <button class="rm-show" onclick="rmSh(${mi},${ni},${si})">&times;</button>
-      </div>`).join('')}
-    </div>
-  </div>`;
-}
-function mF(mi,k,v){mktData[mi][k]=v;}
-function nF(mi,ni,k,v){mktData[mi].nights[ni][k]=v;}
-function shF(mi,ni,si,k,v){mktData[mi].nights[ni].shows[si][k]=v;}
-function mktSel(mi,val){mktData[mi].market=val;mktData[mi]._ci=0;renderMktCards();}
-function applyConfig(mi,ci){mktData[mi]._ci=+ci;mktData[mi].sellable='';mktData[mi].total='';renderMktCards();}
-function addMarket(){mktData.push({market:'',sellable:'',total:'',beTickets:'',beGross:'',potGross:'',comment:'',nights:[],_ci:0});renderMktCards();}
-function rmM(mi){mktData.splice(mi,1);renderMktCards();}
-function addNight(mi){if(!mktData[mi].nights)mktData[mi].nights=[];mktData[mi].nights.push({id:'n'+Date.now(),date:'',shows:[{id:'s'+Date.now(),type:'Solo',cap:'',sold:'',presold:'',price:''}]});renderMktCards();}
-function rmN(mi,ni){mktData[mi].nights.splice(ni,1);renderMktCards();}
-function addShow(mi,ni){const n=mktData[mi].nights[ni];if(!n.shows)n.shows=[];if(n.shows.length>=2)return;if(n.shows.length===1&&n.shows[0].type==='Solo')n.shows[0].type='Early';n.shows.push({id:'s'+Date.now(),type:'Late',cap:'',sold:'',presold:'',price:''});renderMktCards();}
-function rmSh(mi,ni,si){mktData[mi].nights[ni].shows.splice(si,1);renderMktCards();}
 
-/* ── CSV ── */
-function triggerCSV(){document.getElementById('csvInput').click();}
-function handleCSV(e){
-  const file=e.target.files[0];if(!file)return;
-  new FileReader().onload=ev=>{try{importCSV(ev.target.result);}catch(err){showToast('CSV error: '+err.message,'error');}};
-  const r=new FileReader();r.onload=ev=>{try{importCSV(ev.target.result);}catch(err){showToast('CSV error','error');}};
-  r.readAsText(file);e.target.value='';
+function handleTourCSV(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const shows = parseCSV(ev.target.result);
+    if (!shows) { toast('⚠ Could not parse CSV', 'err'); return; }
+    const tour = tours[activeTourId];
+    showModal('Confirm CSV update', `Update "${tour.artist}" with ${shows.length} records from ${file.name}?`, () => applyCSV(activeTourId, shows, file.name));
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 }
-function importCSV(text){
-  if(!activeTourId){showToast('Select a tour first','error');return;}
-  const tour=tours.find(t=>t.id===activeTourId);if(!tour)return;
-  const lines=text.trim().split('\n'),hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase());
-  const mI=hdrs.findIndex(h=>h.includes('market')||h.includes('city'));
-  const sI=hdrs.findIndex(h=>h.includes('sold')||h.includes('count'));
-  const pI=hdrs.findIndex(h=>h.includes('presale')||h.includes('pre'));
-  if(mI<0||sI<0){showToast('CSV needs Market + Sold columns','error');return;}
-  let updated=0;
-  for(let i=1;i<lines.length;i++){
-    const cols=lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
-    const mkt=tour.markets.find(m=>m.market.toLowerCase().includes(cols[mI].toLowerCase())||cols[mI].toLowerCase().includes(m.market.toLowerCase().split(' ')[0]));
-    if(!mkt)continue;
-    const sold=parseInt(cols[sI])||0,presold=pI>=0?(parseInt(cols[pI])||0):0;
-    const nights=mkt.nights||[];
-    if(!nights.length){mkt.sold=sold;mkt.presold=presold;}
-    else{for(const n of nights){for(const sh of(n.shows||[])){sh.sold=sold;sh.presold=presold;break;}break;}}
-    updated++;
+
+function applyCSV(tourId, shows, filename) {
+  const tour = tours[tourId];
+  // Check if this is a presale upload (before on-sale date)
+  const today = new Date().toISOString().slice(0,10);
+  if (tour.onsaleDate && today < tour.onsaleDate && !tour.presaleLockedAt) {
+    const presaleSnap = {};
+    shows.forEach(s => { presaleSnap[s.date] = (presaleSnap[s.date]||0) + s.count; });
+    tour.presaleSnapshot = presaleSnap;
+    tour.presaleLockedAt = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    toast('✓ Presale snapshot locked for ' + tour.artist, 'ok');
   }
-  if(!tour.salesHistory)tour.salesHistory=[];
-  tour.salesHistory.push({date:new Date().toISOString().split('T')[0],markets:tour.markets.map(m=>{const s=mktShows(tour,m.market).reduce((a,x)=>a+x.sold,0);return{market:m.market,sold:s};})});
-  persistData();renderTour();showToast(`${updated} market${updated!==1?'s':''} updated from CSV`,'success');
+  tour.shows = shows;
+  tour.updatedAt = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  saveWoWSnapshot(tour, shows);
+  if (wowChart) { wowChart.destroy(); wowChart = null; }
+  saveTours();
+  if (activeTourId === tourId) {
+    buildSales(tour); buildByShow(tour);
+    document.getElementById('th-sub').textContent = `${Object.keys(tour.caps||{}).length} markets · Last updated: ${tour.updatedAt}`;
+  }
+  toast('✓ ' + tour.artist + ' updated with ' + shows.length + ' records', 'ok');
 }
 
-/* ── APPS SCRIPT ── */
-const SCRIPT=`// City Winery Tour Tracker — Apps Script
-// Deploy: Web App | Execute as: Me | Access: Anyone
-const SHEET_NAME = 'TourData';
-function doGet(e) {
-  if ((e.parameter||{}).action==='LOAD') return respond(loadData());
-  return respond({ok:false,error:'Unknown action'});
-}
-function doPost(e) {
-  try {
-    const b=JSON.parse(e.postData.contents);
-    if(b.action==='SAVE'){saveData(b.data);return respond({ok:true});}
-    return respond({ok:false,error:'Unknown action'});
-  } catch(err){return respond({ok:false,error:err.message});}
-}
-function respond(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
-function getSheet(){const ss=SpreadsheetApp.getActiveSpreadsheet();return ss.getSheetByName(SHEET_NAME)||ss.insertSheet(SHEET_NAME);}
-function saveData(data){const s=getSheet();s.clearContents();s.getRange(1,1).setValue(JSON.stringify(data));s.getRange(2,1).setValue(new Date().toISOString());}
-function loadData(){try{const v=getSheet().getRange(1,1).getValue();return v?{ok:true,data:JSON.parse(v)}:{ok:true,data:[]};}catch(e){return{ok:false,error:e.message};}}
-/* Optional email parser — set subject/sender and add a time-driven trigger
-function parseTicketEmail(){
-  const threads=GmailApp.search('subject:Daily Ticket Count from:reports@tickets.com newer_than:2d',0,1);
-  if(!threads.length)return;
-  const body=threads[0].getMessages()[0].getPlainBody();
-  Logger.log(body.slice(0,300));
-  // Match your email format and call saveData() to update counts
-} */`;
-
-function populateScript(){const el=document.getElementById('appsScriptCode');if(el)el.value=SCRIPT;}
-function copyScript(){navigator.clipboard.writeText(SCRIPT).then(()=>showToast('Copied!','success'));}
-function openSetup(){
-  const inp=document.getElementById('sheetsUrlInput');if(sheetsUrl)inp.value=sheetsUrl;
-  const s=document.getElementById('emailSubject'),r=document.getElementById('emailSender');
-  if(emailCfg.subject)s.value=emailCfg.subject;if(emailCfg.sender)r.value=emailCfg.sender;
-  document.getElementById('setupModal').classList.add('open');
-}
-function closeSetup(){document.getElementById('setupModal').classList.remove('open');}
-async function testAndSaveUrl(){
-  const url=document.getElementById('sheetsUrlInput').value.trim();
-  if(!url){showToast('Enter the URL first','error');return;}
-  setSyncState('syncing','Testing…');
-  try{
-    const r=await fetch(url+'?action=LOAD'),j=await r.json();
-    if(j.ok!==undefined){sheetsUrl=url;localStorage.setItem('cw_sheets_url',url);setSyncState('ok','Connected');showToast('Connected! Syncing…','success');closeSetup();syncToSheets();}
-    else throw new Error();
-  }catch(e){showToast('Connection failed — check URL','error');setSyncState('error','Failed');}
-}
-function saveEmailCfg(){
-  emailCfg={subject:document.getElementById('emailSubject').value.trim(),sender:document.getElementById('emailSender').value.trim()};
-  localStorage.setItem('cw_email_cfg',JSON.stringify(emailCfg));showToast('Email config saved','success');
+function saveWoWSnapshot(tour, shows) {
+  if (!tour.wowSnapshots) tour.wowSnapshots = [];
+  const totals = {};
+  shows.forEach(s => { totals[s.city] = (totals[s.city]||0) + s.count; });
+  const now = new Date();
+  const uploadDate = now.toISOString().slice(0,10);
+  const uploadedAt = now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const thisWeek = getWeekStart(uploadDate);
+  const existingIdx = tour.wowSnapshots.findIndex(s => getWeekStart(s.uploadDate)===thisWeek);
+  const snapshot = { uploadDate, uploadedAt, totals };
+  if (existingIdx >= 0) {
+    tour.wowSnapshots[existingIdx] = snapshot;
+  } else {
+    tour.wowSnapshots.push(snapshot);
+  }
+  tour.wowSnapshots.sort((a,b) => a.uploadDate.localeCompare(b.uploadDate));
 }
 
-/* ── CONFIRM ── */
-let _cb=null;
-function showConfirm(title,msg,cb){
-  document.getElementById('confirmTitle').textContent=title;
-  document.getElementById('confirmMsg').textContent=msg;
-  _cb=cb;document.getElementById('confirmOkBtn').onclick=()=>{closeConfirm();if(_cb)_cb();};
-  document.getElementById('confirmOverlay').classList.add('open');
+// ════════════════════════════════════════════════════════
+// ARCHIVE / UNARCHIVE
+// ════════════════════════════════════════════════════════
+function archiveTour(id) {
+  const t = tours[id];
+  showModal('Archive this tour?', `"${t.artist} — ${t.tourName}" will be moved to archived. Download a standalone file at any time.`, () => {
+    t.archived = true; saveTours(); goHome();
+    toast(`"${t.artist}" archived`);
+  });
 }
-function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');}
+function archiveCurrentTour() {
+  if (activeTourId) archiveTour(activeTourId);
+}
+function unarchiveTour(id) {
+  tours[id].archived = false; saveTours(); renderHome();
+  toast('Tour restored to active');
+}
+function downloadArchive(id) {
+  const tour = tours[id];
+  const bc = byCity(tour.shows||[]);
+  const cities = cityOrder(tour.shows||[]);
+  const totalSold = Object.values(bc).reduce((a,b)=>a+b.count,0);
+  const totalRev  = Object.values(bc).reduce((a,b)=>a+b.sales,0);
+  let rows = '';
+  cities.forEach(city => {
+    const d = bc[city];
+    const cap = tour.caps[city]?.sell||0;
+    const shows = [...d.shows].sort((a,b)=>a.date.localeCompare(b.date));
+    shows.forEach(s => {
+      const p = cap>0?(s.count/cap*100).toFixed(1):'—';
+      rows += `<tr><td>${city}</td><td>${fmtDate(s.date)}</td><td>${s.count}</td><td>${p}%</td><td>$${s.sales.toLocaleString()}</td></tr>`;
+    });
+  });
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${tour.artist} — Archive</title>
+  <style>body{font-family:Georgia,serif;max-width:900px;margin:40px auto;padding:20px;color:#1a1a1a}
+  h1{color:#6B1A3A}table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#6B1A3A;color:#fff;padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.06em}
+  td{padding:8px 12px;border-bottom:1px solid #f0e8ec}tr:hover td{background:#fdf5f8}
+  .meta{display:flex;gap:20px;margin-bottom:24px}.s{background:#f5eaef;padding:12px 16px;border-radius:8px}
+  .sl{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#6b6b6b}
+  .sv{font-size:22px;color:#6B1A3A}
+  </style></head><body>
+  <h1>${tour.artist}</h1><h2 style="color:#888;font-weight:normal">${tour.tourName} — Final Archive</h2>
+  <div class="meta">
+    <div class="s"><div class="sl">Total tickets sold</div><div class="sv">${totalSold.toLocaleString()}</div></div>
+    <div class="s"><div class="sl">Total revenue</div><div class="sv">$${Math.round(totalRev).toLocaleString()}</div></div>
+    <div class="s"><div class="sl">Markets</div><div class="sv">${cities.length}</div></div>
+    <div class="s"><div class="sl">Shows</div><div class="sv">${(tour.shows||[]).length}</div></div>
+  </div>
+  <table><thead><tr><th>Market</th><th>Date</th><th>Sold</th><th>% Cap</th><th>Revenue</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div style="margin-top:32px;font-size:11px;color:#999;border-top:1px solid #e8d0d8;padding-top:12px">Archived: ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · City Winery Tour Tracker</div>
+  </body></html>`;
+  const blob = new Blob([html],{type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tour.artist.replace(/\s+/g,'_')}_${tour.tourName.replace(/\s+/g,'_')}_Archive.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Downloaded archive for ' + tour.artist);
+}
 
-/* ── TOAST ── */
-let _tt;
-function showToast(msg,type=''){
-  const el=document.getElementById('toastEl');el.textContent=msg;
-  el.className='toast show'+(type?' '+type:'');
-  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),3000);
+// ════════════════════════════════════════════════════════
+// SETUP FORM — CREATE / EDIT TOUR
+// ════════════════════════════════════════════════════════
+function goSetup(tourId = null) {
+  editingTourId = tourId || null;
+  mktCount = 0;
+  addedMkts.clear();
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('tour-view').style.display = 'none';
+  document.getElementById('setup-screen').style.display = '';
+  document.getElementById('setup-title').textContent = tourId ? 'Edit Tour' : 'Create New Tour';
+
+  // Clear form
+  ['f-artist','f-tour','f-keyword','f-vinofile-presale','f-onsale'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('mkt-cards').innerHTML = '';
+
+  // Market chips
+  const chips = document.getElementById('mkt-chips');
+  chips.innerHTML = '';
+  Object.keys(KNOWN_CAPS).forEach(name => {
+    const c = document.createElement('button');
+    c.className = 'mchip'; c.textContent = name; c.id = 'chip-' + slug(name);
+    c.onclick = () => {
+      if (addedMkts.has(name)) return;
+      addedMkts.add(name); c.classList.add('sel');
+      addMktCard(name, KNOWN_CAPS[name][0].sell, KNOWN_CAPS[name][0].total);
+    };
+    chips.appendChild(c);
+  });
+
+  if (tourId) {
+    const t = tours[tourId];
+    document.getElementById('f-artist').value = t.artist || '';
+    document.getElementById('f-tour').value = t.tourName || '';
+    document.getElementById('f-keyword').value = t.keyword || '';
+    document.getElementById('f-vinofile-presale').value = t.vinofilePresaleDate || '';
+    document.getElementById('f-onsale').value = t.onsaleDate || '';
+    Object.entries(t.caps || {}).forEach(([name, cap]) => {
+      addedMkts.add(name);
+      const chip = document.getElementById('chip-' + slug(name));
+      if (chip) chip.classList.add('sel');
+      addMktCard(name, cap.sell, cap.total, cap.beTickets, cap.beGross, cap.potGross, cap.comment);
+    });
+  }
 }
+
+function cancelSetup() { editingTourId ? openTour(editingTourId) : goHome(); }
+function editTour() { if (activeTourId) goSetup(activeTourId); }
+
+function addMktCard(name='', sell='', total='', beTickets='', beGross='', potGross='', comment='') {
+  mktCount++;
+  const id = 'smkt' + mktCount;
+  const configs = KNOWN_CAPS[name] || [];
+  const hasCfg = configs.length > 1;
+  const div = document.createElement('div');
+  div.className = 'mkt-card'; div.id = id;
+
+  let cfgRow = '';
+  if (hasCfg) {
+    const opts = configs.map((c,i) => `<option value="${i}">${c.label}</option>`).join('');
+    cfgRow = `<div class="cfg-select-row">
+      <label>Room config</label>
+      <select onchange="updateMktCapFromCfg('${id}','${name}',this.value)">
+        ${opts}
+      </select>
+    </div>`;
+  }
+
+  div.innerHTML = `
+    ${cfgRow}
+    <div class="mkt-card-hdr">
+      <span>${name || 'Custom market'}</span>
+      <button class="mkt-remove" onclick="removeMktCard('${id}','${name}')">✕</button>
+    </div>
+    <div class="mkt-grid">
+      <div class="form-field"><label>Market name</label><input type="text" class="sm-name" value="${name}" placeholder="City"></div>
+      <div class="form-field"><label>Sellable cap / show</label><input type="number" class="sm-sell" value="${sell}" placeholder="e.g. 304"></div>
+      <div class="form-field"><label>Total capacity / show</label><input type="number" class="sm-total" value="${total}" placeholder="e.g. 345"></div>
+    </div>
+    <div style="padding:0 14px 10px;border-top:1px solid var(--border);">
+      <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px;font-weight:600">Financial targets — full market run</div>
+      <div class="mkt-grid">
+        <div class="form-field"><label>Breakeven tickets</label><input type="number" class="sm-be-tickets" value="${beTickets}" placeholder="e.g. 560"></div>
+        <div class="form-field"><label>Breakeven gross ($)</label><input type="number" class="sm-be-gross" value="${beGross}" placeholder="e.g. 98000"></div>
+        <div class="form-field"><label>Potential gross ($)</label><input type="number" class="sm-pot-gross" value="${potGross}" placeholder="e.g. 163000"></div>
+      </div>
+    </div>
+    <div class="mkt-shows-section">
+      <div class="mkt-shows-label">Show dates & times — add one row per show</div>
+      <div class="sm-shows-list" id="shows-${id}"></div>
+      <button type="button" onclick="addShowRow('${id}')" class="add-show-row-btn">+ Add show date</button>
+    </div>
+    <div class="mkt-comment-section">
+      <label>Market notes</label>
+      <textarea class="sm-comment" placeholder="e.g. Co-promoted with Live Nation · Partial standing · Special guest">${comment}</textarea>
+    </div>`;
+  document.getElementById('mkt-cards').appendChild(div);
+  addShowRow(id);
+}
+
+function updateMktCapFromCfg(mktId, mktName, cfgIdx) {
+  const cfg = KNOWN_CAPS[mktName]?.[parseInt(cfgIdx)];
+  if (!cfg) return;
+  const card = document.getElementById(mktId);
+  if (!card) return;
+  card.querySelector('.sm-sell').value = cfg.sell;
+  card.querySelector('.sm-total').value = cfg.total;
+}
+
+function addShowRow(mktId) {
+  const list = document.getElementById('shows-' + mktId);
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'show-row-form';
+  row.innerHTML = `
+    <div><label>Date</label><input type="date" class="sm-date"></div>
+    <div><label>Show type</label><select class="sm-showtype"><option>Single</option><option>Early</option><option>Late</option><option>Custom</option></select></div>
+    <div><label>Potential gross ($)</label><input type="number" class="sm-potgross" placeholder="e.g. 21000"></div>
+    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;margin-top:16px">✕</button>`;
+  list.appendChild(row);
+}
+
+function removeMktCard(id, name) {
+  document.getElementById(id)?.remove();
+  if (name) { addedMkts.delete(name); document.getElementById('chip-'+slug(name))?.classList.remove('sel'); }
+}
+
+function saveTourFromForm() {
+  const artist = document.getElementById('f-artist').value.trim();
+  if (!artist) { toast('⚠ Artist name is required', 'err'); return; }
+  const tourName = document.getElementById('f-tour').value.trim() || 'City Winery Tour 2026';
+  const keyword = document.getElementById('f-keyword').value.trim() || artist.replace(/\s+/g,'_');
+  const vinofilePresaleDate = document.getElementById('f-vinofile-presale').value || null;
+  const onsaleDate = document.getElementById('f-onsale').value || null;
+
+  const caps = {};
+  document.querySelectorAll('#mkt-cards .mkt-card').forEach(card => {
+    const name = card.querySelector('.sm-name')?.value.trim();
+    if (!name) return;
+    const sell = parseInt(card.querySelector('.sm-sell')?.value)||0;
+    const total = parseInt(card.querySelector('.sm-total')?.value)||0;
+    const beTickets = parseInt(card.querySelector('.sm-be-tickets')?.value)||0;
+    const beGross = parseFloat(card.querySelector('.sm-be-gross')?.value)||0;
+    const potGross = parseFloat(card.querySelector('.sm-pot-gross')?.value)||0;
+    const comment = card.querySelector('.sm-comment')?.value.trim()||'';
+    const showDates = [];
+    card.querySelectorAll('.sm-date').forEach((dateInput, idx) => {
+      const raw = dateInput.value.trim(); if (!raw) return;
+      const typeInputs = card.querySelectorAll('.sm-showtype');
+      const potInputs = card.querySelectorAll('.sm-potgross');
+      showDates.push({
+        date: raw,
+        timeLabel: typeInputs[idx]?.value || 'Single',
+        potGross: parseFloat(potInputs[idx]?.value)||0
+      });
+    });
+    caps[name] = { sell, total, beTickets, beGross, potGross, comment, showDates };
+  });
+
+  if (Object.keys(caps).length === 0) { toast('⚠ Add at least one market', 'err'); return; }
+
+  const id = editingTourId || (slug(artist) + '-' + Date.now());
+  const existing = tours[id] || {};
+  tours[id] = {
+    ...existing,
+    id, artist, tourName, keyword,
+    vinofilePresaleDate, onsaleDate,
+    updatedAt: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),
+    archived: existing.archived || false,
+    shows: existing.shows || [],
+    wowSnapshots: existing.wowSnapshots || [],
+    presaleSnapshot: existing.presaleSnapshot || null,
+    presaleLockedAt: existing.presaleLockedAt || null,
+    caps
+  };
+
+  saveTours();
+  toast('✓ ' + artist + (editingTourId?' updated':'created'), 'ok');
+  setTimeout(() => openTour(id), 300);
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+loadTours();
+updateSheetsUI();
+goHome();
+if (sheetsURL) loadFromSheets();
 </script>
 </body>
 </html>
