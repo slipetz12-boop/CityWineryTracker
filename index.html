@@ -84,8 +84,6 @@ body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(-
   position: relative;
 }
 .tour-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.tour-card-click-layer { position: absolute; inset: 0; z-index: 1; }
-.tc-footer { position: relative; z-index: 2; }
 .tc-accent { height: 5px; background: var(--wine); }
 .tc-accent.archived { background: var(--muted); }
 .tc-body { padding: 16px; }
@@ -795,8 +793,12 @@ function makeTourCard(tour) {
 
   const card = document.createElement('div');
   card.className = 'tour-card';
+  card.setAttribute('data-tourid', tour.id);
+  card.addEventListener('click', function(e) {
+    // Only open if not clicking footer buttons
+    if (!e.target.closest('.tc-footer')) openTour(this.getAttribute('data-tourid'));
+  });
   card.innerHTML = `
-    <div class="tour-card-click-layer" onclick="openTour('${tour.id}')"></div>
     <div class="tc-accent${tour.archived ? ' archived' : ''}"></div>
     <div class="tc-body">
       <div class="tc-artist">${tour.artist}</div>
