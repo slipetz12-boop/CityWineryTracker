@@ -793,14 +793,11 @@ function makeTourCard(tour) {
 
   const card = document.createElement('div');
   card.className = 'tour-card';
-  card.setAttribute('data-tourid', tour.id);
-  card.addEventListener('click', function(e) {
-    // Only open if not clicking footer buttons
-    if (!e.target.closest('.tc-footer')) openTour(this.getAttribute('data-tourid'));
-  });
+  // Store tour ID on element safely
+  const safeId = tour.id;
   card.innerHTML = `
     <div class="tc-accent${tour.archived ? ' archived' : ''}"></div>
-    <div class="tc-body">
+    <div class="tc-body" style="cursor:pointer">
       <div class="tc-artist">${tour.artist}</div>
       <div class="tc-name">${tour.tourName}</div>
       <div class="mini-gauge-row">${miniGauges}</div>
@@ -840,6 +837,8 @@ function makeTourCard(tour) {
           : `<button class="btn btn-xs btn-danger" onclick="archiveTour('${tour.id}')">Archive</button>`}
       </div>
     </div>`;
+  // Attach click after innerHTML is set - guaranteed to work
+  card.querySelector('.tc-body').addEventListener('click', () => openTour(safeId));
   return card;
 }
 
