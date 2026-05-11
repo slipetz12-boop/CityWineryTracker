@@ -601,9 +601,13 @@ function promptSheetsURL() {
 async function syncToSheets(manual = false) {
   if (!sheetsURL) return;
   try {
-    // Encode data as URL param on GET request — avoids all CORS issues
-    const data = encodeURIComponent(JSON.stringify(tours));
-    await fetch(sheetsURL + '?action=SAVE&data=' + data, { mode: 'no-cors' });
+    // Send as POST with JSON body — Apps Script handles this via doPost
+    const response = await fetch(sheetsURL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'SAVE', data: tours })
+    });
     if (manual) toast('✓ Synced to Google Sheets', 'ok');
   } catch(e) {
     if (manual) toast('⚠ Sheets sync failed — check URL', 'err');
