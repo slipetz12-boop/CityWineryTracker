@@ -972,9 +972,11 @@ function buildSales(tour) {
   let gaugeHTML = '<div class="gauge-grid">';
   cities.forEach((city, i) => {
     const d = bc[city] || { count: 0, sales: 0, shows: [] };
-    const cap = tour.caps[city]?.sell || 0;
-    const numShows = d.shows.length;
-    const sellCap = cap * numShows;
+    const capData = tour.caps[city] || {};
+    const cap = capData.sell || 0;
+    const showDates = capData.showDates || [];
+    const numShows = d.shows.length || showDates.length;
+    const sellCap = cap * (d.shows.length || showDates.length);
     const p = sellCap > 0 ? (d.count / sellCap * 100) : 0;
     const presaleTotal = d.shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
     const publicTotal  = d.count - presaleTotal;
@@ -982,6 +984,15 @@ function buildSales(tour) {
     const publicPct    = sellCap > 0 ? (publicTotal / sellCap * 100) : 0;
     const hasPresale   = presaleTotal > 0;
     const gid = 'g-' + i + '-' + Date.now();
+    // Build show dates list from caps (setup data)
+    const showDatesHTML = showDates.length > 0 ? `
+      <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;text-align:left">
+        ${showDates.map(sd => `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--slate);margin-bottom:3px">
+            <span>${fmtDate(sd.date)}${sd.timeLabel && sd.timeLabel!=='Single' ? ' <span style="color:var(--wine-mid);font-style:italic">'+sd.timeLabel+'</span>' : ''}</span>
+            <span style="font-family:JetBrains Mono,monospace;color:var(--wine)">${fmt$(sd.potGross)}</span>
+          </div>`).join('')}
+      </div>` : '';
     gaugeHTML += `
       <div class="gauge-card">
         <div class="gauge-name">${city}</div>
@@ -993,6 +1004,7 @@ function buildSales(tour) {
           <span class="gauge-dot" style="background:#6B1A3A"></span>${publicTotal.toLocaleString()} public
         </div>` : ''}
         <div class="gauge-detail">${numShows} show${numShows!==1?'s':''} · ${fmt$(d.sales)}</div>
+        ${showDatesHTML}
       </div>`;
     setTimeout(() => {
       const el = document.getElementById(gid);
@@ -1017,59 +1029,82 @@ function buildSales(tour) {
 // ════════════════════════════════════════════════════════
 function buildByShow(tour) {
   const bc = byCity(tour.shows || []);
-  const cities = cityOrder(tour.shows || []);
+  // Use caps keys if no CSV data yet so scheduled shows display
+  const cities = (tour.shows||[]).length > 0
+    ? cityOrder(tour.shows)
+    : Object.keys(tour.caps || {});
   const hasPresale = tour.presaleSnapshot && Object.keys(tour.presaleSnapshot).length > 0;
   let sHTML = '', rHTML = '';
 
   cities.forEach(city => {
     const d = bc[city] || { count: 0, sales: 0, shows: [] };
-    const cap = tour.caps[city]?.sell || 0;
-    const shows = [...d.shows].sort((a, b) => a.date.localeCompare(b.date));
+    const capData = tour.caps[city] || {};
+    const cap = capData.sell || 0;
+    const showDates = capData.showDates || [];
+    // Use CSV shows if available, otherwise use scheduled showDates from setup
+    const shows = d.shows.length > 0
+      ? [...d.shows].sort((a, b) => a.date.localeCompare(b.date))
+      : showDates.map(sd => ({ date: sd.date, count: 0, sales: 0, timeLabel: sd.timeLabel, potGross: sd.potGross }));
 
+    const hasCSV = d.shows.length > 0;
     sHTML += `<div class="city-hdr">${city} <span>(${cap} sellable/show)</span></div>`;
-    if (hasPresale) {
-      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Presale</th><th class="r">Public</th><th class="r">Total</th><th class="r">% cap</th></tr></thead><tbody>`;
-    } else {
-      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Sold</th><th class="r">% to cap</th></tr></thead><tbody>`;
-    }
-
-    shows.forEach(s => {
-      const p = cap > 0 ? (s.count / cap * 100) : 0;
-      const w = Math.min(Math.round(p), 100);
-      const cls = p >= 85 ? 'high' : p < 35 ? 'low' : '';
-      const pre = getPresale(tour, s.date);
-      const pub = s.count - pre;
-      const barCell = `<div class="cap-bar-cell"><div class="cap-bar-track"><div class="cap-bar-fill ${cls}" style="width:${w}%"></div></div><span class="cap-pct">${fmtPct(p)}</span></div>`;
-      if (hasPresale) {
+    if (!hasCSV) {
+      // No CSV yet — show scheduled dates with type and potential gross
+      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Show type</th><th class="r">Pot. gross</th></tr></thead><tbody>`;
+      shows.forEach(s => {
         sHTML += `<tr>
           <td>${fmtDate(s.date)}</td>
-          <td class="r" style="color:#9B4060">${pre.toLocaleString()}</td>
-          <td class="r">${pub.toLocaleString()}</td>
-          <td class="r"><strong>${s.count.toLocaleString()}</strong></td>
-          <td class="r">${barCell}</td></tr>`;
-      } else {
-        sHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${s.count.toLocaleString()}</td><td class="r">${barCell}</td></tr>`;
-      }
-    });
-    const ts = shows.reduce((a, b) => a + b.count, 0);
-    const tPre = shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
-    const tc = cap * shows.length;
-    if (hasPresale) {
-      sHTML += `<tr class="total-row"><td>Total</td><td class="r" style="color:#9B4060">${tPre.toLocaleString()}</td><td class="r">${(ts-tPre).toLocaleString()}</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+          <td><span style="font-size:10px;padding:2px 7px;border-radius:99px;background:${s.timeLabel==='Early'?'#E3EAFE':s.timeLabel==='Late'?'#EEE6FC':'var(--wine-pale)'};color:${s.timeLabel==='Early'?'#185FA5':s.timeLabel==='Late'?'#5A1F96':'var(--wine)'}">${s.timeLabel||'Single'}</span></td>
+          <td class="r">${fmt$(s.potGross||0)}</td>
+        </tr>`;
+      });
+      const totPot = shows.reduce((a,s)=>a+(s.potGross||0),0);
+      sHTML += `<tr class="total-row"><td>Total</td><td></td><td class="r">${fmt$(totPot)}</td></tr>`;
+    } else if (hasPresale) {
+      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Presale</th><th class="r">Public</th><th class="r">Total</th><th class="r">% cap</th></tr></thead><tbody>`;
+      shows.forEach(s => {
+        const p = cap > 0 ? (s.count / cap * 100) : 0;
+        const w = Math.min(Math.round(p), 100);
+        const cls = p >= 85 ? 'high' : p < 35 ? 'low' : '';
+        const pre = getPresale(tour, s.date);
+        const pub = s.count - pre;
+        const barCell = `<div class="cap-bar-cell"><div class="cap-bar-track"><div class="cap-bar-fill ${cls}" style="width:${w}%"></div></div><span class="cap-pct">${fmtPct(p)}</span></div>`;
+        sHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r" style="color:#9B4060">${pre.toLocaleString()}</td><td class="r">${pub.toLocaleString()}</td><td class="r"><strong>${s.count.toLocaleString()}</strong></td><td class="r">${barCell}</td></tr>`;
+      });
     } else {
-      sHTML += `<tr class="total-row"><td>Total</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+      sHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Sold</th><th class="r">% to cap</th></tr></thead><tbody>`;
+      shows.forEach(s => {
+        const p = cap > 0 ? (s.count / cap * 100) : 0;
+        const w = Math.min(Math.round(p), 100);
+        const cls = p >= 85 ? 'high' : p < 35 ? 'low' : '';
+        const barCell = `<div class="cap-bar-cell"><div class="cap-bar-track"><div class="cap-bar-fill ${cls}" style="width:${w}%"></div></div><span class="cap-pct">${fmtPct(p)}</span></div>`;
+        sHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${s.count.toLocaleString()}</td><td class="r">${barCell}</td></tr>`;
+      });
+    }
+    if (hasCSV) {
+    if (hasCSV) {
+      const ts = shows.reduce((a, b) => a + b.count, 0);
+      const tPre = shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
+      const tc = cap * shows.length;
+      if (hasPresale) {
+        sHTML += `<tr class="total-row"><td>Total</td><td class="r" style="color:#9B4060">${tPre.toLocaleString()}</td><td class="r">${(ts-tPre).toLocaleString()}</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+      } else {
+        sHTML += `<tr class="total-row"><td>Total</td><td class="r">${ts.toLocaleString()}</td><td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr>`;
+      }
     }
     sHTML += '</tbody></table></div>';
 
-    rHTML += `<div class="city-hdr">${city}</div>`;
-    rHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Revenue</th><th class="r">Avg / ticket</th></tr></thead><tbody>`;
-    shows.forEach(s => {
-      rHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${fmt$(s.sales)}</td><td class="r">${fmt$(s.count>0?s.sales/s.count:0)}</td></tr>`;
-    });
-    const tr = shows.reduce((a, b) => a + b.sales, 0);
-    const tc2 = shows.reduce((a, b) => a + b.count, 0);
-    rHTML += `<tr class="total-row"><td>Total</td><td class="r">${fmt$(tr)}</td><td class="r">${fmt$(tc2>0?tr/tc2:0)}</td></tr>`;
-    rHTML += '</tbody></table></div>';
+    if (hasCSV) {
+      rHTML += `<div class="city-hdr">${city}</div>`;
+      rHTML += `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Revenue</th><th class="r">Avg / ticket</th></tr></thead><tbody>`;
+      shows.forEach(s => {
+        rHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${fmt$(s.sales)}</td><td class="r">${fmt$(s.count>0?s.sales/s.count:0)}</td></tr>`;
+      });
+      const tr = shows.reduce((a, b) => a + b.sales, 0);
+      const tc2 = shows.reduce((a, b) => a + b.count, 0);
+      rHTML += `<tr class="total-row"><td>Total</td><td class="r">${fmt$(tr)}</td><td class="r">${fmt$(tc2>0?tr/tc2:0)}</td></tr>`;
+      rHTML += '</tbody></table></div>';
+    }
   });
 
   document.getElementById('pane-byshow').innerHTML = `
