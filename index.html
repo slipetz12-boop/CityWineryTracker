@@ -601,15 +601,9 @@ function promptSheetsURL() {
 async function syncToSheets(manual = false) {
   if (!sheetsURL) return;
   try {
-    // Use no-cors mode — Apps Script doesn't support CORS for POST from browser
-    // We send as form-encoded via a hidden form submission approach using fetch no-cors
-    const formData = new FormData();
-    formData.append('payload', JSON.stringify({ action: 'SAVE', data: tours }));
-    await fetch(sheetsURL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
-    });
+    // Encode data as URL param on GET request — avoids all CORS issues
+    const data = encodeURIComponent(JSON.stringify(tours));
+    await fetch(sheetsURL + '?action=SAVE&data=' + data, { mode: 'no-cors' });
     if (manual) toast('✓ Synced to Google Sheets', 'ok');
   } catch(e) {
     if (manual) toast('⚠ Sheets sync failed — check URL', 'err');
