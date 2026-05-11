@@ -372,13 +372,8 @@ body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(-
     <div class="sheets-dot" id="sheets-dot"></div>
     <span id="sheets-status-text">Google Sheets: not configured</span>
   </div>
-  <button class="btn btn-xs btn-outline" onclick="toggleSheetsInput()">Configure</button>
+  <button class="btn btn-xs btn-outline" onclick="promptSheetsURL()">Configure</button>
   <button class="btn btn-xs btn-outline" onclick="syncToSheets(true)">Sync now</button>
-  <div id="sheets-input-row" style="display:none;align-items:center;gap:6px;margin-left:8px">
-    <input type="text" id="sheets-url-input" placeholder="Paste Apps Script URL here" style="font-size:11px;padding:3px 8px;border:1px solid var(--border-mid);border-radius:var(--radius);width:340px;font-family:'Figtree',sans-serif">
-    <button class="btn btn-xs btn-wine" onclick="saveSheetsURL()">Save</button>
-    <button class="btn btn-xs btn-outline" onclick="toggleSheetsInput()">Cancel</button>
-  </div>
 </div>
 
 <!-- HOME SCREEN -->
@@ -595,24 +590,13 @@ function updateSheetsUI() {
     txt.textContent = 'Google Sheets: not configured';
   }
 }
-function toggleSheetsInput() {
-  const row = document.getElementById('sheets-input-row');
-  const input = document.getElementById('sheets-url-input');
-  if (row.style.display === 'none') {
-    row.style.display = 'flex';
-    input.value = sheetsURL || '';
-    input.focus();
-  } else {
-    row.style.display = 'none';
-  }
-}
-function saveSheetsURL() {
-  const input = document.getElementById('sheets-url-input');
-  sheetsURL = (input.value || '').trim();
+function promptSheetsURL() {
+  const url = prompt('Paste your Google Apps Script Web App URL:', sheetsURL || '');
+  if (url === null) return;
+  sheetsURL = url.trim();
   localStorage.setItem('cw_sheets_url', sheetsURL);
   updateSheetsUI();
-  document.getElementById('sheets-input-row').style.display = 'none';
-  if (sheetsURL) { loadFromSheets(); toast('✓ URL saved — loading data...', 'ok'); }
+  if (sheetsURL) syncToSheets(true);
 }
 async function syncToSheets(manual = false) {
   if (!sheetsURL) return;
@@ -1773,7 +1757,7 @@ function saveTourFromForm() {
 loadTours();
 updateSheetsUI();
 goHome();
-if (sheetsURL) loadFromSheets();
+loadFromSheets();
 </script>
 </body>
 </html>
