@@ -1688,10 +1688,10 @@ function saveTourFromForm() {
 
   if (Object.keys(caps).length === 0) { toast('⚠ Add at least one market', 'err'); return; }
 
-  const id = editingTourId || (slug(artist) + '-' + Date.now());
-  const existing = tours[id] || {};
-  // Ensure ID is always a clean string
-  const cleanId = String(id);
+  // If editing existing tour use that ID, otherwise always generate a fresh one
+  const isEditing = !!(editingTourId && tours[editingTourId]);
+  const cleanId = isEditing ? String(editingTourId) : (slug(artist) + '-' + Date.now());
+  const existing = tours[cleanId] || {};
   tours[cleanId] = {
     ...existing,
     id: cleanId, artist, tourName, keyword,
@@ -1705,8 +1705,9 @@ function saveTourFromForm() {
     caps
   };
 
+  editingTourId = null; // Reset after every save
   saveTours();
-  toast('✓ ' + artist + (editingTourId?' updated':'created'), 'ok');
+  toast('✓ ' + artist + (isEditing ? ' updated' : ' created'), 'ok');
   setTimeout(() => openTour(cleanId), 300);
 }
 
