@@ -374,6 +374,7 @@ body { font-family: 'Figtree', sans-serif; background: var(--mist); color: var(-
   </div>
   <button class="btn btn-xs btn-outline" onclick="promptSheetsURL()">Configure</button>
   <button class="btn btn-xs btn-outline" onclick="syncToSheets(true)">Sync now</button>
+  <span style="margin-left:12px;font-size:10px;color:var(--muted)">Team members: visit <a href="/restore.html" style="color:var(--wine)">restore.html</a> to load latest data</span>
 </div>
 
 <!-- HOME SCREEN -->
@@ -601,25 +602,21 @@ function promptSheetsURL() {
 async function syncToSheets(manual = false) {
   if (!sheetsURL) return;
   try {
-    // Use GET with encoded data — matches new Apps Script doGet SAVE action
-    const encoded = encodeURIComponent(JSON.stringify(tours));
-    // Split into chunks if needed — but first try full payload
-    const url = sheetsURL + '?action=SAVE&data=' + encoded;
-    if (url.length < 8000) {
-      await fetch(url, { mode: 'no-cors' });
-    } else {
-      // Fallback: POST with text/plain body (no CORS preflight on text/plain)
-      await fetch(sheetsURL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ action: 'SAVE', data: tours })
-      });
-    }
+    // Send as text/plain POST — no CORS preflight triggered on simple content types
+    // Apps Script reads e.postData.contents directly regardless of content-type
+    const body = JSON.stringify({ action: 'SAVE', data: tours });
+    await fetch(sheetsURL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: body
+    });
     if (manual) toast('✓ Synced to Google Sheets', 'ok');
   } catch(e) {
     if (manual) toast('⚠ Sheets sync failed — check URL', 'err');
   }
 }
+
 async function loadFromSheets() {
   if (!sheetsURL) return;
   try {
@@ -1442,7 +1439,11 @@ function handleGlobalCSV(e) {
     const shows = parseCSV(ev.target.result);
     if (!shows) { toast('⚠ Could not parse CSV — check column names', 'err'); return; }
     const tour = findTourByFilename(file.name);
-    if (!tour) { toast('⚠ No tour matched "' + file.name + '" — check keyword', 'err'); return; }
+    if (!tour) {
+      const keywords = Object.values(tours).map(t => t.keyword || t.artist).join(', ');
+      toast('⚠ No tour matched "' + file.name + '" — keywords are: ' + keywords, 'err');
+      return;
+    }
     showModal('Confirm CSV update', `Update "${tour.artist}" with ${shows.length} records from ${file.name}?`, () => applyCSV(tour.id, shows, file.name));
   };
   reader.readAsText(file);
@@ -1482,7 +1483,7 @@ function applyCSV(tourId, shows, filename) {
     buildSales(tour); buildByShow(tour);
     document.getElementById('th-sub').textContent = `${Object.keys(tour.caps||{}).length} markets · Last updated: ${tour.updatedAt}`;
   }
-  toast('✓ ' + tour.artist + ' updated with ' + shows.length + ' records', 'ok');
+  toast('✓ ' + tour.artist + ' updated — click Save Snapshot to share with your team', 'ok');
 }
 
 function saveWoWSnapshot(tour, shows) {
@@ -1714,6 +1715,9 @@ function saveTourFromForm() {
     const showDates = [];
     card.querySelectorAll('.sm-date').forEach((dateInput, idx) => {
       const raw = dateInput.value.trim(); if (!raw) return;
+      // Validate year is reasonable (2020-2030)
+      const yr = parseInt(raw.split('-')[0]);
+      if (yr < 2020 || yr > 2030) { toast('⚠ Check date year: ' + raw + ' — looks incorrect', 'err'); return; }
       const typeInputs = card.querySelectorAll('.sm-showtype');
       const potInputs = card.querySelectorAll('.sm-potgross');
       showDates.push({
@@ -1746,7 +1750,7 @@ function saveTourFromForm() {
 
   editingTourId = null; // Reset after every save
   saveTours();
-  toast('✓ ' + artist + (isEditing ? ' updated' : ' created'), 'ok');
+  toast('✓ ' + artist + (isEditing ? ' updated' : ' created') + ' — click Save Snapshot to share with your team', 'ok');
   setTimeout(() => openTour(cleanId), 300);
 }
 
