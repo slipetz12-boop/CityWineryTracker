@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v2.1 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1081,7 +1081,6 @@ function buildByShow(tour) {
         sHTML += `<tr><td>${fmtDate(s.date)}</td><td class="r">${s.count.toLocaleString()}</td><td class="r">${barCell}</td></tr>`;
       });
     }
-    if (hasCSV) {
     if (hasCSV) {
       const ts = shows.reduce((a, b) => a + b.count, 0);
       const tPre = shows.reduce((a, s) => a + getPresale(tour, s.date), 0);
