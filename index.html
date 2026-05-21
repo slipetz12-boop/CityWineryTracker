@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Winery — Tour Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Figtree:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--wine:#6B1A3A;--wine-mid:#9B4060;--wine-light:#C8899A;--wine-pale:#f5eaef;--wine-track:#e8d0d8;--gold:#B8892A;--ink:#1a1410;--slate:#4a3f35;--muted:#7a6b60;--mist:#faf6f3;--border:rgba(107,26,58,0.12);--border-mid:rgba(107,26,58,0.22);--white:#ffffff;--green:#2D6A4F;--green-pale:#d1f0e2;--amber:#B86A0A;--amber-pale:#fef3c7;--red:#991b1b;--red-pale:#fee2e2;--radius:8px;--shadow:0 1px 8px rgba(107,26,58,0.10);--shadow-lg:0 4px 24px rgba(107,26,58,0.16)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',sans-serif;background:var(--mist);color:var(--ink);font-size:14px;line-height:1.5}
+.app-header{background:var(--wine);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(107,26,58,0.4)}
+.hbrand{display:flex;align-items:center;gap:10px}
+.hbrand h1{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;letter-spacing:0.04em;cursor:pointer}
+.hbrand .hdiv{width:1px;height:24px;background:rgba(255,255,255,0.25)}
+.hbrand .hsub{font-size:11px;font-weight:300;opacity:0.6;letter-spacing:0.12em;text-transform:uppercase}
+.hactions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--radius);font-family:'Figtree',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-ghost{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25)}
+.btn-ghost:hover{background:rgba(255,255,255,0.2)}
+.btn-gold{background:var(--gold);color:#fff;font-weight:600}
+.btn-wine{background:var(--wine);color:#fff;font-weight:600}
+.btn-wine:hover{background:var(--wine-mid)}
+.btn-outline{background:var(--white);color:var(--slate);border:1px solid var(--border-mid)}
+.btn-outline:hover{background:var(--wine-pale);border-color:var(--wine);color:var(--wine)}
+.btn-danger{background:var(--red-pale);color:var(--red);border:1px solid #fca5a5}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-xs{padding:3px 8px;font-size:10px}
+.home-screen{max-width:1100px;margin:0 auto;padding:32px 24px}
+.home-screen h2{font-family:'Libre Baskerville',serif;font-size:20px;color:var(--ink);margin-bottom:6px}
+.home-meta{font-size:12px;color:var(--muted);margin-bottom:24px}
+.tour-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.tour-card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:box-shadow .18s,transform .18s;box-shadow:var(--shadow)}
+.tour-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.tc-accent{height:5px;background:var(--wine)}
+.tc-accent.archived{background:var(--muted)}
+.tc-body{padding:16px;cursor:pointer}
+.tc-artist{font-family:'Libre Baskerville',serif;font-size:15px;font-weight:700;color:var(--ink)}
+.tc-name{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:12px}
+.mini-gauge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.mini-gauge-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.mini-gauge-label{font-size:9px;color:var(--muted);text-align:center;max-width:48px;line-height:1.2}
+.tc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;border-top:1px solid var(--border);padding-top:12px}
+.tc-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.tc-stat-value{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);font-weight:500;margin-top:2px}
+.tc-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border);background:var(--mist)}
+.tc-updated{font-size:10px;color:var(--muted)}
+.tc-actions{display:flex;gap:4px}
+.add-tour-card{background:var(--white);border-radius:12px;border:2px dashed var(--border-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:200px;color:var(--muted);transition:all .15s;font-family:'Figtree',sans-serif;width:100%}
+.add-tour-card:hover{border-color:var(--wine);color:var(--wine);background:var(--wine-pale)}
+.add-tour-icon{font-size:28px}
+.add-tour-label{font-size:13px;font-weight:500}
+.archived-section{margin-top:32px}
+.archived-section h3{font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:14px}
+.setup-screen{display:none;max-width:800px;margin:0 auto;padding:32px 24px}
+.tour-view{display:none}
+.tour-header{background:var(--white);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.th-left h2{font-family:'Libre Baskerville',serif;font-size:20px;color:var(--ink)}
+.th-left p{font-size:12px;color:var(--muted);margin-top:2px}
+.th-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tour-tabs{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;display:flex}
+.tab{padding:11px 16px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:var(--wine)}
+.tab.active{color:var(--wine);border-bottom-color:var(--wine);font-weight:600}
+.tab-content{padding:24px 28px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.kpi-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;min-width:120px;box-shadow:var(--shadow)}
+.kpi.kpi-success{border-color:var(--green);background:var(--green-pale)}
+.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--ink);margin-top:3px}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px;font-weight:500}
+.progress-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--slate);margin-bottom:5px}
+.progress-track{background:var(--wine-track);border-radius:99px;height:8px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:var(--wine);transition:width .5s}
+.progress-fill.green{background:var(--green)}
+.progress-fill.cw{background:var(--wine)}
+.progress-fill.amber{background:var(--amber)}
+.gauge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.gauge-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.gauge-name{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.gauge-pct{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;color:var(--wine);margin-top:4px}
+.gauge-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.gauge-presale-note{font-size:10px;color:var(--muted);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+.gauge-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.cap-bar-cell{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.cap-bar-track{width:60px;height:5px;background:var(--wine-track);border-radius:99px;overflow:hidden}
+.cap-bar-fill{height:100%;border-radius:99px;background:var(--wine)}
+.cap-bar-fill.high{background:var(--green)}
+.cap-bar-fill.low{background:var(--amber)}
+.cap-pct{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:36px;text-align:right}
+.tbl-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl-wrap th{background:var(--wine);color:#fff;padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;font-weight:500}
+.tbl-wrap th.r{text-align:right}
+.tbl-wrap td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl-wrap td.r{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tbody tr:hover td{background:var(--wine-pale)}
+.tbl-wrap .total-row td{font-weight:600;background:var(--mist)}
+.city-hdr{font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:var(--wine);padding:14px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.city-hdr span{font-size:11px;font-weight:400;color:var(--muted);font-family:'Figtree',sans-serif;margin-left:6px}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+.chart-title{font-size:12px;font-weight:600;color:var(--slate);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em}
+.chart-wrap{position:relative;height:280px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--slate)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.pacing-market{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.pacing-market-hdr{background:var(--mist);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:flex-start;justify-content:space-between}
+.pacing-market-hdr h3{font-family:'Libre Baskerville',serif;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hdr-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.urgency-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
+.urgency-chip.green{background:var(--green-pale);color:var(--green)}
+.urgency-chip.amber{background:var(--amber-pale);color:var(--amber)}
+.urgency-chip.red{background:var(--red-pale);color:var(--red)}
+.pacing-body{padding:16px 18px}
+.progress-section{margin-bottom:16px}
+.pacing-targets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.pacing-target{background:var(--mist);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.pacing-target.green{border-color:var(--green);background:var(--green-pale)}
+.pacing-target.amber{border-color:var(--amber);background:var(--amber-pale)}
+.pacing-target-label{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.pacing-target-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--ink);margin-top:4px}
+.pacing-target-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.section-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.show-pacing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.show-pacing-card{background:var(--mist);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.show-pacing-date{font-size:11px;font-weight:600;color:var(--wine);margin-bottom:8px}
+.show-pacing-row{display:flex;justify-content:space-between;font-size:11px;color:var(--slate);margin-bottom:4px}
+.presale-summary{display:flex;flex-wrap:wrap;gap:12px;background:var(--wine-pale);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px}
+.presale-summary-item{font-size:11px;color:var(--slate)}
+.no-targets-note{background:var(--amber-pale);border:1px solid var(--amber);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--amber);margin-bottom:14px}
+.inline-target-edit{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.inline-edit-field label{font-size:10px;color:var(--slate);display:block;margin-bottom:3px}
+.inline-edit-field input{width:100%;padding:6px 8px;border:1px solid var(--border-mid);border-radius:5px;font-size:12px;font-family:'Figtree',sans-serif}
+.inline-save-btn{margin-top:10px;display:inline-block;background:var(--wine);color:#fff;border:none;border-radius:var(--radius);padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Figtree',sans-serif}
+.setup-screen h2{font-family:'Libre Baskerville',serif;font-size:20px;color:var(--ink);margin-bottom:4px}
+.setup-screen p{font-size:12px;color:var(--muted);margin-bottom:24px}
+.form-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.form-section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:16px;font-weight:600}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field label{font-size:11px;font-weight:500;color:var(--slate)}
+.form-field input,.form-field select,.form-field textarea{padding:8px 10px;border:1px solid var(--border-mid);border-radius:var(--radius);font-family:'Figtree',sans-serif;font-size:13px;color:var(--ink);background:var(--white);transition:border-color .15s}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:var(--wine);box-shadow:0 0 0 3px rgba(107,26,58,0.08)}
+.req{color:var(--wine);margin-left:2px}
+.mkt-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.mchip{padding:5px 12px;border-radius:99px;border:1px solid var(--border-mid);background:var(--white);font-size:12px;font-weight:500;cursor:pointer;font-family:'Figtree',sans-serif;color:var(--slate);transition:all .13s}
+.mchip:hover{background:var(--wine-pale);border-color:var(--wine);color:var(--wine)}
+.mchip.sel{background:var(--wine);color:#fff;border-color:var(--wine)}
+.mkt-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.mkt-card-hdr{background:var(--wine-pale);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--wine)}
+.mkt-remove{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;transition:color .12s}
+.mkt-remove:hover{color:var(--red)}
+.mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px}
+.mkt-shows-section{padding:0 14px 14px}
+.mkt-shows-label{font-size:10px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:8px;font-weight:600}
+.show-row-form{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px}
+.show-row-form label{font-size:10px;color:var(--muted);display:block;margin-bottom:3px}
+.add-show-row-btn{background:none;border:1px dashed var(--border-mid);color:var(--muted);border-radius:var(--radius);padding:6px;font-size:11px;cursor:pointer;width:100%;font-family:'Figtree',sans-serif;margin-top:6px;transition:all .13s}
+.add-show-row-btn:hover{border-color:var(--wine);color:var(--wine);background:var(--wine-pale)}
+.mkt-comment-section{padding:0 14px 14px}
+.mkt-comment-section label{font-size:10px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);font-weight:600;display:block;margin-bottom:6px}
+.mkt-comment-section textarea{width:100%;padding:8px 10px;border:1px solid var(--border-mid);border-radius:var(--radius);font-family:'Figtree',sans-serif;font-size:12px;resize:vertical;min-height:54px}
+.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.cfg-select-row{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--wine-pale);border-bottom:1px solid var(--border)}
+.cfg-select-row label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--wine);white-space:nowrap}
+.cfg-select-row select{font-size:12px;padding:4px 8px;border:1px solid var(--border-mid);border-radius:5px;font-family:'Figtree',sans-serif}
+.modal-backdrop{position:fixed;inset:0;background:rgba(26,20,16,0.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-backdrop.show{opacity:1;pointer-events:all}
+.modal-box{background:var(--white);border-radius:12px;padding:24px;max-width:440px;width:100%;box-shadow:var(--shadow-lg);transform:translateY(-8px);transition:transform .2s}
+.modal-backdrop.show .modal-box{transform:translateY(0)}
+.modal-box h3{font-family:'Libre Baskerville',serif;font-size:16px;margin-bottom:10px}
+.modal-box p{font-size:13px;color:var(--slate);margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.sheets-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--mist);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)}
+.sheets-status{display:flex;align-items:center;gap:5px}
+.sheets-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.sheets-dot.connected{background:var(--green)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:var(--radius);font-size:12px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .25s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--green)}
+.toast.err{background:var(--red)}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:99px}
+
+/* ── Meta Ads Tab Styles ── */
+.meta-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.meta-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.meta-badge.scale{background:#d1fae5;color:#065f46}
+.meta-badge.hold{background:var(--amber-pale);color:var(--amber)}
+.meta-badge.pause{background:var(--red-pale);color:var(--red)}
+.meta-badge.paused{background:#f3f4f6;color:#6b7280}
+.meta-badge.stop{background:var(--red-pale);color:var(--red)}
+.meta-loc-table{width:100%;border-collapse:collapse;font-size:13px}
+.meta-loc-table th{background:var(--wine);color:#fff;padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;font-weight:500}
+.meta-loc-table th.r{text-align:right}
+.meta-loc-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.meta-loc-table td.r{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px}
+.meta-loc-table tr:last-child td{border-bottom:none}
+.meta-loc-table tbody tr:hover td{background:var(--wine-pale)}
+.cpa-good{color:var(--green);font-weight:600}
+.cpa-warn{color:var(--amber);font-weight:600}
+.cpa-bad{color:var(--red);font-weight:600}
+.meta-section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin:20px 0 12px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:8px}
+.meta-refresh-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius)}
+.meta-refresh-ts{font-size:11px;color:var(--muted)}
+.meta-tour-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.meta-empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.meta-empty-icon{font-size:32px;margin-bottom:12px}
+.meta-empty-text{font-size:13px;color:var(--slate)}
+.meta-config-note{background:var(--amber-pale);border:1px solid var(--amber);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--amber);margin-bottom:20px}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="hbrand">
+    <h1 onclick="goHome()">CITY WINERY</h1>
+    <div class="hdiv"></div>
+    <span class="hsub">Tour Tracker</span>
+  </div>
+  <div class="hactions">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('global-csv').click()">⬆ Upload CSV</button>
+    <input type="file" id="global-csv" accept=".csv" style="display:none" onchange="handleGlobalCSV(event)">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-json').click()">↩ Import Data</button>
+    <input type="file" id="import-json" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-gold btn-sm" onclick="exportData()">⬇ Save Snapshot</button>
+  </div>
+</header>
+<div class="sheets-bar" id="sheets-bar">
+  <div class="sheets-status">
+    <div class="sheets-dot" id="sheets-dot"></div>
+    <span id="sheets-status-text">Google Sheets: not configured</span>
+  </div>
+  <button class="btn btn-xs btn-outline" onclick="promptSheetsURL()">Configure</button>
+  <button class="btn btn-xs btn-outline" onclick="syncToSheets(true)">Sync now</button>
+</div>
+<div class="home-screen" id="home-screen">
+  <h2>Active Tours</h2>
+  <p class="home-meta">Click a tour to view its dashboard, or create a new one.</p>
+  <div class="tour-grid" id="active-tour-grid"></div>
+  <div class="archived-section" id="archived-section" style="display:none">
+    <h3>Archived</h3>
+    <div class="tour-grid" id="archived-tour-grid"></div>
+  </div>
+</div>
+<div class="setup-screen" id="setup-screen">
+  <h2 id="setup-title">Create New Tour</h2>
+  <p>Enter tour details and add markets. Ticket counts come in later via CSV.</p>
+  <div class="form-section">
+    <div class="form-section-title">Tour Info</div>
+    <div class="form-grid">
+      <div class="form-field"><label>Artist Name <span class="req">*</span></label><input type="text" id="f-artist" placeholder="e.g. Norah Jones"></div>
+      <div class="form-field"><label>Tour Name</label><input type="text" id="f-tour" placeholder="e.g. City Winery Tour 2026"></div>
+      <div class="form-field"><label>CSV Keyword</label><input type="text" id="f-keyword" placeholder="For auto-matching CSV by filename"></div>
+      <div class="form-field"><label>VinoFile Presale Date</label><input type="date" id="f-vinofile-presale"></div>
+      <div class="form-field"><label>Public On-Sale Date</label><input type="date" id="f-onsale"></div>
+    </div>
+  </div>
+  <!-- META ADS SECTION IN TOUR SETUP -->
+  <div class="form-section">
+    <div class="form-section-title">📊 Meta Ads Configuration</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px;margin-top:-8px">Link this tour to its Meta campaign to pull live ad performance data automatically.</p>
+    <div class="form-grid">
+      <div class="form-field"><label>Meta Campaign Name</label><input type="text" id="f-meta-campaign" placeholder="e.g. Lyle Lovett 2026"></div>
+      <div class="form-field"><label>CPA Target ($)</label><input type="number" id="f-meta-cpa" placeholder="18" value="18"></div>
+      <div class="form-field"><label>Avg Ticket Price ($)</label><input type="number" id="f-meta-avg-ticket" placeholder="e.g. 175"></div>
+      <div class="form-field"><label>Meta Ads Start Date</label><input type="date" id="f-meta-start"></div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="form-section-title">Markets</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a market to add it. Capacity defaults are pre-filled. Breakeven and potential gross are per full market run.</p>
+    <div class="mkt-chips" id="mkt-chips"></div>
+    <div id="mkt-cards"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-outline" onclick="cancelSetup()">Cancel</button>
+    <button class="btn btn-wine" onclick="saveTourFromForm()">Create Tour</button>
+  </div>
+</div>
+<div class="tour-view" id="tour-view">
+  <div class="tour-header">
+    <div class="th-left"><h2 id="th-title">—</h2><p id="th-sub">—</p></div>
+    <div class="th-right">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('tour-csv').click()">⬆ Upload CSV</button>
+      <input type="file" id="tour-csv" accept=".csv" style="display:none" onchange="handleTourCSV(event)">
+      <button class="btn btn-outline btn-sm" onclick="editTour()">✎ Edit</button>
+      <button class="btn btn-outline btn-sm" onclick="archiveCurrentTour()">Archive</button>
+      <button class="btn btn-outline btn-sm" onclick="goHome()">↑ Home</button>
+    </div>
+  </div>
+  <div class="tour-tabs">
+    <div class="tab active" onclick="switchTab('sales')">Ticket Sales</div>
+    <div class="tab" onclick="switchTab('byshow')">By Show</div>
+    <div class="tab" onclick="switchTab('wow')">Week over Week</div>
+    <div class="tab" onclick="switchTab('pacing')">Pacing &amp; Goals</div>
+    <div class="tab" onclick="switchTab('meta')">📊 Meta Ads</div>
+  </div>
+  <div class="tab-content">
+    <div class="tab-pane active" id="pane-sales"></div>
+    <div class="tab-pane" id="pane-byshow"></div>
+    <div class="tab-pane" id="pane-wow">
+      <div class="chart-card" id="wow-chart-card"></div>
+      <div class="tbl-wrap"><table id="wow-table-el"><thead></thead><tbody></tbody></table></div>
+    </div>
+    <div class="tab-pane" id="pane-pacing"><div id="pacing-content"></div></div>
+    <div class="tab-pane" id="pane-meta"><div id="meta-content"></div></div>
+  </div>
+</div>
+<div class="modal-backdrop" id="modal">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-wine" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KNOWN_CAPS={'New York City':[{label:'Standard',sell:330,total:430}],'Chicago':[{label:'Standard',sell:304,total:345}],'Nashville':[{label:'Standard',sell:314,total:394}],'Atlanta':[{label:'Standard',sell:312,total:402}],'Boston':[{label:'Standard',sell:288,total:328}],'Philadelphia':[{label:'Standard',sell:312,total:365}],'Hudson Valley':[{label:'Standard',sell:312,total:352}],'St. Louis':[{label:'Config A — 200 sell',sell:200,total:210},{label:'Config B — 260 sell',sell:260,total:280}],'Pittsburgh':[{label:'Config A — 220 sell',sell:220,total:242},{label:'Config B — 252 sell',sell:252,total:282}]};
+const PALETTE=['#6B1A3A','#2E6B8A','#4A7C59','#8B5E3C','#5E4A8B','#2A6B6B','#8B3A1A','#3A5F8B','#6B5E1A'];
+const STORE_KEY='cw_tours_v4';
+const META_API='https://script.google.com/macros/s/AKfycbzmrxjg9_AYerGk44_wXn4PXuKYzj6C8ToP3s-9jMH6JwPhGKxI6hMVg35iot_PkjEdwQ/exec';
+const META_LOC_MAP={'ATL':'Atlanta','BOS':'Boston','CHI':'Chicago','CV':'Cleveland','HV':'Hudson Valley','NSH':'Nashville','NYC':'New York City','PGH':'Pittsburgh','PHL':'Philadelphia','STL':'St. Louis'};
+const META_CITY_CAMPAIGNS=['Boston','Nashville','Atlanta','Chicago','Philadelphia','Pittsburgh','St. Louis','NYC','Hudson Valley','New York'];
+let tours={},activeTourId=null,editingTourId=null,wowChart=null,mktCount=0;
+const addedMkts=new Set();
+const SHEETS_URL_HARDCODED='https://script.google.com/macros/s/AKfycbxLZYQYs_KFYQDp_KaXhbz2vXoqrulBlC8UZp8BVocrrHSwZmsCArFOflweh-G2QSse/exec';let sheetsURL=localStorage.getItem('cw_sheets_url')||SHEETS_URL_HARDCODED;localStorage.setItem('cw_sheets_url',sheetsURL);
+
+function loadTours(){try{const r=localStorage.getItem(STORE_KEY);if(r){tours=JSON.parse(r);Object.values(tours).forEach(t=>{sanitizeTourDates(t);if(t.shows)t.shows=collapseShows(t.shows);});}}catch(e){tours={};}}
+function saveTours(){localStorage.setItem(STORE_KEY,JSON.stringify(tours));syncToSheets();}
+function exportData(){const b=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),tours},null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='CityWinery_TourTracker_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);toast('✓ Snapshot saved');}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const s=JSON.parse(ev.target.result);if(!s.tours){toast('⚠ Invalid data file','err');return;}tours={};Object.assign(tours,s.tours);localStorage.setItem(STORE_KEY,JSON.stringify(tours));syncToSheets(false);goHome();toast('✓ Data imported — '+Object.keys(s.tours).length+' tours','ok');}catch(err){toast('⚠ Error reading file','err');}};r.readAsText(f);e.target.value='';}
+function updateSheetsUI(){const d=document.getElementById('sheets-dot'),t=document.getElementById('sheets-status-text');if(sheetsURL){d.className='sheets-dot connected';t.textContent='Google Sheets: connected';}else{d.className='sheets-dot';t.textContent='Google Sheets: not configured';}}
+function promptSheetsURL(){const u=prompt('Paste your Google Apps Script Web App URL:',sheetsURL||'');if(u===null)return;sheetsURL=u.trim();localStorage.setItem('cw_sheets_url',sheetsURL);updateSheetsUI();if(sheetsURL)syncToSheets(true);}
+async function syncToSheets(manual=false){
+  if(!sheetsURL)return;
+  const statusEl=document.getElementById('sheets-status-text');
+  try{
+    // POST raw JSON body — matches Apps Script doPost(e) which reads e.postData.contents
+    const res=await fetch(sheetsURL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'SAVE',data:tours})
+    });
+    // no-cors always succeeds silently — verify by immediately loading back
+    if(manual){
+      // Wait briefly then load to confirm data landed
+      setTimeout(async()=>{
+        try{
+          const check=await fetch(sheetsURL+'?action=LOAD&t='+Date.now());
+          if(!check.ok)throw new Error('check failed');
+          const json=await check.json();
+          if(json.ok&&json.data&&Object.keys(json.data).length>0){
+            toast('✓ Confirmed synced to Google Sheets','ok');
+            if(statusEl)statusEl.textContent='Google Sheets: connected';
+          }else{
+            toast('✓ Synced to Google Sheets','ok');
+          }
+        }catch(e){
+          toast('✓ Sync sent (load check failed — may still be ok)','ok');
+        }
+      },2000);
+    }
+  }catch(e){
+    if(manual)toast('⚠ Sheets sync failed — check URL','err');
+    if(statusEl)statusEl.textContent='Google Sheets: sync error';
+  }
+}
+async function loadFromSheets(silent=false){
+  if(!sheetsURL)return;
+  const statusEl=document.getElementById('sheets-status-text');
+  if(statusEl&&!silent)statusEl.textContent='Google Sheets: syncing…';
+  try{
+    const res=await fetch(sheetsURL+'?action=LOAD&t='+Date.now());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    if(json.ok&&json.data&&Object.keys(json.data).length>0){
+      const raw=json.data,cleaned={};
+      Object.values(raw).forEach(t=>{
+        if(!t||!t.artist)return;
+        const cid=(t.id&&typeof t.id==='string'&&!t.id.includes('[object'))?t.id:t.artist.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-2026';
+        t.id=cid;cleaned[cid]=t;
+      });
+      Object.values(cleaned).forEach(t=>{sanitizeTourDates(t);if(t.shows)t.shows=collapseShows(t.shows);});
+      tours=cleaned;
+      localStorage.setItem(STORE_KEY,JSON.stringify(tours));
+      // Silently push cleaned data back (no confirmation check — just fire and forget)
+      fetch(sheetsURL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'SAVE',data:tours})}).catch(()=>{});
+      if(activeTourId&&tours[activeTourId]){renderTourView();}else{renderHome();}
+      if(statusEl)statusEl.textContent='Google Sheets: connected';
+      if(!silent)toast('✓ Data loaded from Sheets','ok');
+    }else{
+      if(statusEl)statusEl.textContent='Google Sheets: connected';
+    }
+  }catch(e){
+    if(statusEl)statusEl.textContent='Google Sheets: connected (load failed)';
+    if(!silent)toast('⚠ Could not load from Sheets — check URL','err');
+  }
+}
+const fmt$=v=>'$'+Math.round(v).toLocaleString();
+const fmtPct=v=>v.toFixed(1)+'%';
+const fmtDate=d=>{const clean=sanitizeDate(d);return clean?new Date(clean+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Invalid Date';};
+function sanitizeDate(raw){if(!raw)return null;const s=String(raw).trim();
+if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+if(s.length>10&&/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+if(s.includes('/')){const dp=s.split(' ')[0].split('T')[0],pts=dp.split('/');if(pts.length===3){let[m,d,y]=pts;if(y.length<=2)y=(parseInt(y)<50?'20':'19')+y.padStart(2,'0');return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;}}
+const pm=s.match(/^(\d{4})\s+.*-(\d{2})-(\d{2})$/);if(pm)return `${pm[1]}-${pm[2]}-${pm[3]}`;return null;}
+function sanitizeTourDates(tour){if(!tour||!tour.shows)return tour;tour.shows=tour.shows.map(s=>({...s,date:sanitizeDate(s.date)||s.date}));return tour;}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-');}
+function cityOrder(shows){const seen=new Set(),order=[];[...shows].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{if(!seen.has(s.city)){seen.add(s.city);order.push(s.city);}});return order;}
+function byCity(shows){const m={};shows.forEach(s=>{if(!m[s.city])m[s.city]={count:0,sales:0,shows:[]};m[s.city].count+=s.count;m[s.city].sales+=s.sales;m[s.city].shows.push({...s});});return m;}
+function getWeekStart(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));return dt.toISOString().slice(0,10);}
+function getPresale(tour,dateStr){if(!tour.presaleSnapshot)return 0;return tour.presaleSnapshot[dateStr]||0;}
+function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(type?' '+type:'');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3200);}
+function showModal(title,body,onConfirm){document.getElementById('modal-title').textContent=title;document.getElementById('modal-body').textContent=body;document.getElementById('modal-confirm').onclick=()=>{closeModal();onConfirm();};document.getElementById('modal').classList.add('show');}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function drawSplitGauge(el,presalePct,publicPct){if(!el)return;const r=36,cx=55,cy=50,sw=9,total=Math.PI*r,cp=Math.min(Math.max(publicPct,0),100),cpr=Math.min(Math.max(presalePct,0),100-cp),pf=(cp/100)*total,prf=(cpr/100)*total;let svg=`<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#e8d0d8" stroke-width="${sw}" stroke-linecap="round"/>`;if(prf>0)svg+=`<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#C8899A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(prf+pf).toFixed(2)} ${(total-prf-pf+0.5).toFixed(2)}"/>`;if(pf>0)svg+=`<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#6B1A3A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${pf.toFixed(2)} ${(total-pf+0.5).toFixed(2)}"/>`;el.innerHTML=svg;}
+function drawMiniGauge(el,pct){if(!el)return;const r=18,cx=24,cy=22,sw=5,total=Math.PI*r,clamp=Math.min(Math.max(pct,0),100),filled=(clamp/100)*total;el.innerHTML=`<path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#e8d0d8" stroke-width="${sw}" stroke-linecap="round"/><path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#6B1A3A" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${filled.toFixed(2)} ${(total-filled+0.3).toFixed(2)}"/>`;}
+function showScreen(name){document.getElementById('home-screen').style.display=name==='home'?'block':'none';document.getElementById('setup-screen').style.display=name==='setup'?'block':'none';document.getElementById('tour-view').style.display=name==='tour'?'block':'none';}
+function goHome(){activeTourId=null;if(wowChart){wowChart.destroy();wowChart=null;}showScreen('home');renderHome();}
+function renderHome(){const ag=document.getElementById('active-tour-grid'),arG=document.getElementById('archived-tour-grid'),arS=document.getElementById('archived-section');ag.innerHTML='';arG.innerHTML='';const active=Object.values(tours).filter(t=>!t.archived),archived=Object.values(tours).filter(t=>t.archived);active.forEach(t=>ag.appendChild(makeTourCard(t)));const add=document.createElement('button');add.className='add-tour-card';add.onclick=goSetup;add.innerHTML='<div class="add-tour-icon">＋</div><div class="add-tour-label">New tour</div>';ag.appendChild(add);if(archived.length){arS.style.display='';archived.forEach(t=>arG.appendChild(makeTourCard(t)));}else{arS.style.display='none';}setTimeout(()=>{Object.values(tours).forEach(tour=>{const bc=byCity(tour.shows||[]),cities=cityOrder(tour.shows||[]);cities.forEach((city,i)=>{const d=bc[city],cap=tour.caps[city]?.sell||0,numShows=d.shows.length,pct=(cap*numShows)>0?(d.count/(cap*numShows)*100):0,el=document.getElementById(`mg-${tour.id}-${i}`);if(el)drawMiniGauge(el,pct);});});},60);}
+function makeTourCard(tour){const bc=byCity(tour.shows||[]),cities=cityOrder(tour.shows||[]),totalSold=Object.values(bc).reduce((a,b)=>a+b.count,0),totalRev=Object.values(bc).reduce((a,b)=>a+b.sales,0),totalSellCap=cities.reduce((a,c)=>a+(tour.caps[c]?.sell||0)*(bc[c]?.shows.length||0),0),overallPct=totalSellCap>0?(totalSold/totalSellCap*100):0,tourBE=cities.reduce((a,c)=>a+(tour.caps[c]?.beTickets||0),0),tourPot=cities.reduce((a,c)=>a+(tour.caps[c]?.potGross||0),0),bePct=tourBE>0?Math.min(100,totalSold/tourBE*100):0;
+const miniGauges=cities.slice(0,6).map((c,i)=>`<div class="mini-gauge-item"><svg id="mg-${tour.id}-${i}" viewBox="0 0 48 27" width="48" height="27"></svg><div class="mini-gauge-label">${c.split(' ')[0]}</div></div>`).join('');
+const card=document.createElement('div');card.className='tour-card';
+const body=document.createElement('div');body.className='tc-body';
+body.innerHTML=`<div class="tc-accent${tour.archived?' archived':''}"></div><div class="tc-artist">${tour.artist}</div><div class="tc-name">${tour.tourName}</div><div class="mini-gauge-row">${miniGauges}</div><div class="tc-stats"><div class="tc-stat"><div class="tc-stat-label">Tickets sold</div><div class="tc-stat-value">${totalSold.toLocaleString()}</div></div><div class="tc-stat"><div class="tc-stat-label">% to cap</div><div class="tc-stat-value">${fmtPct(overallPct)}</div></div><div class="tc-stat"><div class="tc-stat-label">Revenue</div><div class="tc-stat-value">${fmt$(totalRev)}</div></div><div class="tc-stat"><div class="tc-stat-label">Markets</div><div class="tc-stat-value">${cities.length}</div></div><div class="tc-stat"><div class="tc-stat-label">Breakeven</div><div class="tc-stat-value">${bePct>=100?'✓ Reached':fmtPct(bePct)}</div></div><div class="tc-stat"><div class="tc-stat-label">Potential</div><div class="tc-stat-value">${fmt$(tourPot)}</div></div></div>`;
+const footer=document.createElement('div');footer.className='tc-footer';
+footer.innerHTML=`<span class="tc-updated">Updated: ${tour.updatedAt||'—'}</span><div class="tc-actions"><button class="btn btn-xs btn-outline">Archive file</button>${tour.archived?'<button class="btn btn-xs btn-outline">Unarchive</button>':'<button class="btn btn-xs btn-danger">Archive</button>'}</div>`;
+footer.querySelectorAll('button').forEach((btn,i)=>{if(i===0)btn.onclick=e=>{e.stopPropagation();downloadArchive(tour.id);};if(i===1)btn.onclick=e=>{e.stopPropagation();tour.archived?unarchiveTour(tour.id):archiveTour(tour.id);};}); (function(tid){var b=document.createElement('button');b.textContent='Delete';b.style.cssText='background:#8B0000;color:#fff;border:none;padding:3px 8px;border-radius:6px;font-size:10px;cursor:pointer;margin-left:4px';b.onclick=function(e){e.stopPropagation();deleteTour(tid);};footer.querySelector('.tc-actions').appendChild(b);}(tour.id));
+body.onclick=function(){openTour(tour.id);};
+card.appendChild(body);card.appendChild(footer);return card;}
+function openTour(id){activeTourId=id;showScreen('tour');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelector('.tab').classList.add('active');document.getElementById('pane-sales').classList.add('active');renderTourView();}
+function renderTourView(){const tour=tours[activeTourId];if(!tour){goHome();return;}document.getElementById('th-title').textContent=`${tour.artist} — ${tour.tourName}`;document.getElementById('th-sub').textContent=`${Object.keys(tour.caps||{}).length} markets · Last updated: ${tour.updatedAt||'never'}`;buildSales(tour);}
+function switchTab(id){const ids=['sales','byshow','wow','pacing','meta'];document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',ids[i]===id);});document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.getElementById('pane-'+id).classList.add('active');const tour=tours[activeTourId];if(!tour)return;if(id==='byshow')buildByShow(tour);if(id==='wow')setTimeout(()=>buildWoW(tour),50);if(id==='pacing')buildPacing(tour);if(id==='meta')buildMetaAds(tour);}
+function buildSales(tour){const bc=byCity(tour.shows||[]),cities=(tour.shows||[]).length>0?cityOrder(tour.shows):Object.keys(tour.caps||{}),totalSold=Object.values(bc).reduce((a,b)=>a+b.count,0),totalRev=Object.values(bc).reduce((a,b)=>a+b.sales,0),totalSellCap=cities.reduce((a,c)=>a+(tour.caps[c]?.sell||0)*(bc[c]?.shows.length||0),0),pct=totalSellCap>0?(totalSold/totalSellCap*100):0,tourBE=cities.reduce((a,c)=>a+(tour.caps[c]?.beTickets||0),0),tourBeGross=cities.reduce((a,c)=>a+(tour.caps[c]?.beGross||0),0),tourPot=cities.reduce((a,c)=>a+(tour.caps[c]?.potGross||0),0),hasFin=tourBE>0||tourBeGross>0,tToTBE=Math.max(0,tourBE-totalSold),gToTBE=Math.max(0,tourBeGross-totalRev),tBEPctTix=tourBE>0?Math.min(100,totalSold/tourBE*100):0,tBEPctG=tourBeGross>0?Math.min(100,totalRev/tourBeGross*100):0,tPotPct=tourPot>0?Math.min(100,totalRev/tourPot*100):0;
+let kpiHTML=`<div class="kpi"><div class="kpi-label">Tickets sold</div><div class="kpi-value">${totalSold.toLocaleString()}</div><div class="kpi-sub">${cities.length} markets · ${(tour.shows||[]).length} shows</div></div><div class="kpi"><div class="kpi-label">Gross revenue</div><div class="kpi-value">${fmt$(totalRev)}</div><div class="kpi-sub">from CSV uploads</div></div><div class="kpi"><div class="kpi-label">Sellable cap</div><div class="kpi-value">${totalSellCap.toLocaleString()}</div><div class="kpi-sub">all shows combined</div></div><div class="kpi"><div class="kpi-label">% to cap</div><div class="kpi-value">${fmtPct(pct)}</div><div class="kpi-sub">overall</div></div>`;
+if(hasFin)kpiHTML+=`<div class="kpi ${tBEPctTix>=100?'kpi-success':''}"><div class="kpi-label">Tour BE tickets</div><div class="kpi-value" style="font-size:18px">${tourBE.toLocaleString()}</div><div class="kpi-sub">${totalSold.toLocaleString()} sold · ${tToTBE>0?tToTBE.toLocaleString()+' to go':'✓ Reached'}</div></div><div class="kpi ${tBEPctG>=100?'kpi-success':''}"><div class="kpi-label">Tour BE gross</div><div class="kpi-value" style="font-size:18px">${fmt$(tourBeGross)}</div><div class="kpi-sub">${fmt$(totalRev)} earned · ${gToTBE>0?fmt$(gToTBE)+' to go':'✓ Reached'}</div></div><div class="kpi"><div class="kpi-label">Tour potential gross</div><div class="kpi-value" style="font-size:18px">${fmt$(tourPot)}</div><div class="kpi-sub">${tPotPct.toFixed(1)}% achieved</div></div>`;
+let finHTML='';
+if(hasFin)finHTML=`<div class="section-label" style="margin-bottom:10px">Tour financial progress</div><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:24px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px"><div><div class="progress-label"><span>Tickets vs BE (${totalSold.toLocaleString()} of ${tourBE.toLocaleString()})</span><span>${tBEPctTix.toFixed(1)}%</span></div><div class="progress-track" style="height:12px"><div class="progress-fill ${tBEPctTix>=100?'green':'cw'}" style="width:${tBEPctTix}%;height:12px"></div></div><div style="font-size:11px;color:var(--muted);margin-top:4px">${tToTBE>0?tToTBE.toLocaleString()+' more tickets to BE':'✓ BE reached'}</div></div><div><div class="progress-label"><span>Gross vs BE (${fmt$(totalRev)} of ${fmt$(tourBeGross)})</span><span>${tBEPctG.toFixed(1)}%</span></div><div class="progress-track" style="height:12px"><div class="progress-fill ${tBEPctG>=100?'green':'cw'}" style="width:${tBEPctG}%;height:12px"></div></div></div><div><div class="progress-label"><span>Gross vs potential (${fmt$(totalRev)} of ${fmt$(tourPot)})</span><span>${tPotPct.toFixed(1)}%</span></div><div class="progress-track" style="height:12px"><div class="progress-fill cw" style="width:${tPotPct}%;height:12px"></div></div></div></div></div>`;
+let gaugeHTML='<div class="gauge-grid">';
+cities.forEach((city,i)=>{const d=bc[city]||{count:0,sales:0,shows:[]},cap=tour.caps[city]?.sell||0,numShows=d.shows.length,sellCap=cap*numShows,p=sellCap>0?(d.count/sellCap*100):0,pre=d.shows.reduce((a,s)=>a+getPresale(tour,s.date),0),pub=d.count-pre,prePct=sellCap>0?(pre/sellCap*100):0,pubPct=sellCap>0?(pub/sellCap*100):0,hasPre=pre>0,gid='g-'+i+'-'+Date.now();
+gaugeHTML+=`<div class="gauge-card"><div class="gauge-name">${city}</div><svg id="${gid}" viewBox="0 0 110 58" width="110" height="58"></svg><div class="gauge-pct">${fmtPct(p)}</div><div class="gauge-detail">${d.count.toLocaleString()} of ${sellCap.toLocaleString()} sellable</div>${hasPre?`<div class="gauge-presale-note"><span class="gauge-dot" style="background:#C8899A"></span>${pre.toLocaleString()} presale · <span class="gauge-dot" style="background:#6B1A3A"></span>${pub.toLocaleString()} public</div>`:''}${numShows?`<div class="gauge-detail">${numShows} show${numShows!==1?'s':''} · ${fmt$(d.sales)}</div>`:'<div class="gauge-detail" style="color:var(--muted);font-style:italic">No data yet</div>'}</div>`;
+setTimeout(()=>{const el=document.getElementById(gid);drawSplitGauge(el,prePct,pubPct);},40+i*20);});
+gaugeHTML+='</div>';
+const noData=(tour.shows||[]).length===0;
+document.getElementById('pane-sales').innerHTML=`<div class="kpi-row">${kpiHTML}</div>${noData?`<div style="background:var(--amber-pale);border:1px solid var(--amber);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--amber);margin-bottom:20px"><strong>No ticket data yet.</strong> Upload a CSV to populate sales counts.</div>`:''} ${finHTML}<div class="section-label">% sold by market</div>${gaugeHTML}`;}
+function buildByShow(tour){
+  const bc=byCity(tour.shows||[]),cities=cityOrder(tour.shows||[]),hasPre=tour.presaleSnapshot&&Object.keys(tour.presaleSnapshot).length>0;
+  let sHTML='',rHTML='';
+  cities.forEach(city=>{
+    const d=bc[city]||{count:0,sales:0,shows:[]},cap=tour.caps[city]?.sell||0;
+    const shows=[...d.shows].sort((a,b)=>a.date.localeCompare(b.date)||(a.showTime||'').localeCompare(b.showTime||''));
+    sHTML+=`<div class="city-hdr">${city} <span>(${cap} sellable/show)</span></div>`;
+    sHTML+=`<div class="tbl-wrap"><table><thead><tr><th>Date</th>${hasPre?'<th class="r">Presale</th><th class="r">Public</th><th class="r">Total</th>':'<th class="r">Sold</th>'}<th class="r">% cap</th></tr></thead><tbody>`;
+
+    // Group by date to detect multi-show nights
+    const byDate={};
+    shows.forEach(s=>{if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
+
+    shows.forEach(s=>{
+      const p=cap>0?(s.count/cap*100):0,w=Math.min(Math.round(p),100),cls=p>=85?'high':p<35?'low':'';
+      const pre=getPresale(tour,s.date),pub=s.count-pre;
+      const bar=`<div class="cap-bar-cell"><div class="cap-bar-track"><div class="cap-bar-fill ${cls}" style="width:${w}%"></div></div><span class="cap-pct">${fmtPct(p)}</span></div>`;
+      const timeLabel=s.showTime?` <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${s.showTime}</span>`:'';
+      sHTML+=`<tr><td>${fmtDate(s.date)}${timeLabel}</td>${hasPre?`<td class="r" style="color:#9B4060">${pre.toLocaleString()}</td><td class="r">${pub.toLocaleString()}</td><td class="r"><strong>${s.count.toLocaleString()}</strong></td>`:`<td class="r">${s.count.toLocaleString()}</td>`}<td class="r">${bar}</td></tr>`;
+    });
+
+    // Subtotals per date when multi-show night
+    Object.entries(byDate).forEach(([date,dayShows])=>{
+      if(dayShows.length>1){
+        const dayTotal=dayShows.reduce((a,b)=>a+b.count,0);
+        const dayPct=cap>0?(dayTotal/cap*100):0;
+        sHTML+=`<tr style="background:rgba(107,30,46,0.04);font-style:italic"><td style="padding-left:20px;font-size:11px;color:var(--muted)">${fmtDate(date)} total</td><td class="r" style="font-size:11px;color:var(--muted)">${dayTotal.toLocaleString()}</td><td class="r"><span style="font-size:10px;color:var(--muted)">${fmtPct(dayPct)}</span></td></tr>`;
+      }
+    });
+
+    const ts=shows.reduce((a,b)=>a+b.count,0),tPre=shows.reduce((a,s)=>a+getPresale(tour,s.date),0);
+    // Count unique show slots for cap calc
+    const uniqueDates=new Set(shows.map(s=>s.date));
+    const tc=cap*shows.length;
+    sHTML+=`<tr class="total-row"><td>Total</td>${hasPre?`<td class="r">${tPre.toLocaleString()}</td><td class="r">${(ts-tPre).toLocaleString()}</td><td class="r">${ts.toLocaleString()}</td>`:`<td class="r">${ts.toLocaleString()}</td>`}<td class="r">${fmtPct(tc>0?ts/tc*100:0)}</td></tr></tbody></table></div>`;
+
+    rHTML+=`<div class="city-hdr">${city}</div><div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="r">Revenue</th><th class="r">Avg/ticket</th></tr></thead><tbody>`;
+    shows.forEach(s=>{
+      const timeLabel=s.showTime?` <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${s.showTime}</span>`:'';
+      rHTML+=`<tr><td>${fmtDate(s.date)}${timeLabel}</td><td class="r">${fmt$(s.sales)}</td><td class="r">${fmt$(s.count>0?s.sales/s.count:0)}</td></tr>`;
+    });
+    // Revenue subtotals per date when multi-show
+    Object.entries(byDate).forEach(([date,dayShows])=>{
+      if(dayShows.length>1){
+        const dayRev=dayShows.reduce((a,b)=>a+b.sales,0);
+        const dayCnt=dayShows.reduce((a,b)=>a+b.count,0);
+        rHTML+=`<tr style="background:rgba(107,30,46,0.04);font-style:italic"><td style="padding-left:20px;font-size:11px;color:var(--muted)">${fmtDate(date)} total</td><td class="r" style="font-size:11px;color:var(--muted)">${fmt$(dayRev)}</td><td class="r" style="font-size:11px;color:var(--muted)">${fmt$(dayCnt>0?dayRev/dayCnt:0)}</td></tr>`;
+      }
+    });
+    const tr=shows.reduce((a,b)=>a+b.sales,0),tc2=shows.reduce((a,b)=>a+b.count,0);
+    rHTML+=`<tr class="total-row"><td>Total</td><td class="r">${fmt$(tr)}</td><td class="r">${fmt$(tc2>0?tr/tc2:0)}</td></tr></tbody></table></div>`;
+  });
+  document.getElementById('pane-byshow').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px"><div><div class="section-label">Ticket counts</div>${sHTML||'<p style="color:var(--muted);font-size:12px">No show data yet</p>'}</div><div><div class="section-label">Revenue</div>${rHTML}</div></div>`;
+}
+function buildWoW(tour){
+  const snaps=tour.wowSnapshots||[];
+  const cities=cityOrder(tour.shows||[]);
+  const short=c=>c.replace('New York City','NYC').replace('Hudson Valley','HV').replace('Philadelphia','PHL').replace('Pittsburgh','PGH').replace('St. Louis','STL').replace('Nashville','NSH');
+  const chartCard=document.getElementById('wow-chart-card');
+  const tableEl=document.getElementById('wow-table-el');
+
+  if(snaps.length<2){
+    if(wowChart){wowChart.destroy();wowChart=null;}
+    tableEl.querySelector('thead').innerHTML='';
+    tableEl.querySelector('tbody').innerHTML='';
+    chartCard.innerHTML=`<div class="chart-title">Daily & Weekly Sales Progression</div><div style="text-align:center;padding:48px 20px;color:var(--muted)"><div style="font-size:32px;margin-bottom:12px">📊</div><div style="font-size:13px;color:var(--slate)">${snaps.length===0?'No uploads yet — upload your first CSV to set the baseline.':'Baseline set! Upload your next daily CSV to start seeing progression.'}</div></div>`;
+    return;
+  }
+
+  // Build daily deltas between consecutive snapshots
+  // Each row = date of the LATER snapshot, delta = new tickets sold since previous upload
+  const dailyRows=[];
+  for(let i=1;i<snaps.length;i++){
+    const prev=snaps[i-1],curr=snaps[i];
+    const dayDelta={date:curr.uploadDate,uploadedAt:curr.uploadedAt,cities:{}};
+    let total=0;
+    cities.forEach(c=>{
+      const delta=Math.max(0,(curr.totals[c]||0)-(prev.totals[c]||0));
+      dayDelta.cities[c]=delta;
+      total+=delta;
+    });
+    dayDelta.total=total;
+    dailyRows.push(dayDelta);
+  }
+
+  // Also build weekly rollup for the chart
+  const weekMap={};
+  dailyRows.forEach(row=>{
+    const ws=getWeekStart(row.date);
+    if(!weekMap[ws]){weekMap[ws]={};cities.forEach(c=>weekMap[ws][c]=0);weekMap[ws]._total=0;}
+    cities.forEach(c=>weekMap[ws][c]=(weekMap[ws][c]||0)+row.cities[c]);
+    weekMap[ws]._total=(weekMap[ws]._total||0)+row.total;
+  });
+  const weeks=Object.keys(weekMap).sort();
+
+  // Current totals from latest snapshot
+  const latest=snaps[snaps.length-1];
+  const grandTotal=cities.reduce((a,c)=>a+(latest.totals[c]||0),0);
+
+  // ── Render tab header with toggle buttons ──
+  const viewToggleHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:600;color:var(--ink)">${snaps.length} uploads recorded · ${grandTotal.toLocaleString()} total tickets as of ${latest.uploadedAt}</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-sm" id="wow-daily-btn" onclick="wowSetView('daily')" style="background:var(--wine);color:#fff">Daily</button>
+      <button class="btn btn-sm btn-outline" id="wow-weekly-btn" onclick="wowSetView('weekly')">Weekly</button>
+    </div>
+  </div>`;
+
+  // ── Legend ──
+  const legHTML=cities.map((c,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${short(c)}</div>`).join('');
+
+  // Chart card
+  chartCard.innerHTML=`${viewToggleHTML}<div class="legend">${legHTML}</div><div class="chart-wrap"><canvas id="wowChart"></canvas></div>`;
+
+  // ── DAILY view: table below chart ──
+  const colTotals=cities.map(()=>0);
+  let dailyTableHead=`<tr><th>Date</th>${cities.map(c=>`<th class="r">${short(c)}</th>`).join('')}<th class="r">New Tickets</th><th class="r">Running Total</th></tr>`;
+
+  // Running total per day
+  let runningTotal=snaps[0]?cities.reduce((a,c)=>a+(snaps[0].totals[c]||0),0):0;
+  let dailyTableBody=dailyRows.map(row=>{
+    runningTotal+=row.total;
+    row.cities&&cities.forEach((c,i)=>colTotals[i]+=row.cities[c]||0);
+    const isToday=row.date===new Date().toISOString().slice(0,10);
+    return`<tr${isToday?' style="background:var(--wine-pale)"':''}>
+      <td><strong>${new Date(row.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</strong></td>
+      ${cities.map(c=>`<td class="r">${row.cities[c]>0?`<span style="color:var(--green);font-weight:600">+${row.cities[c].toLocaleString()}</span>`:'—'}</td>`).join('')}
+      <td class="r" style="font-weight:600;color:var(--wine)">${row.total>0?'+'+row.total.toLocaleString():'—'}</td>
+      <td class="r" style="font-family:'JetBrains Mono',monospace">${runningTotal.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+  dailyTableBody+=`<tr class="total-row"><td>Total new</td>${colTotals.map(v=>`<td class="r">${v>0?'+'+v.toLocaleString():'—'}</td>`).join('')}<td class="r">+${colTotals.reduce((a,b)=>a+b,0).toLocaleString()}</td><td class="r">${grandTotal.toLocaleString()}</td></tr>`;
+
+  // ── WEEKLY view: table ──
+  const wColTotals=cities.map(()=>0);
+  let weeklyTableHead=`<tr><th>Week of</th>${cities.map(c=>`<th class="r">${short(c)}</th>`).join('')}<th class="r">Week Total</th></tr>`;
+  let weeklyTableBody=weeks.map(w=>{
+    const vals=cities.map(c=>weekMap[w][c]||0);
+    vals.forEach((v,i)=>wColTotals[i]+=v);
+    const rt=weekMap[w]._total||0;
+    return`<tr><td>${new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>${vals.map(v=>`<td class="r">${v>0?'+'+v.toLocaleString():'—'}</td>`).join('')}<td class="r" style="font-weight:600;color:var(--wine)">${rt>0?'+'+rt.toLocaleString():'—'}</td></tr>`;
+  }).join('');
+  weeklyTableBody+=`<tr class="total-row"><td>Total</td>${wColTotals.map(v=>`<td class="r">${v>0?'+'+v.toLocaleString():'—'}</td>`).join('')}<td class="r">${wColTotals.reduce((a,b)=>a+b,0).toLocaleString()}</td></tr>`;
+
+  // Store view state globally and render initial chart
+  window._wowDailyRows=dailyRows;
+  window._wowWeeks=weeks;
+  window._wowWeekMap=weekMap;
+  window._wowCities=cities;
+  window._wowDailyHead=dailyTableHead;
+  window._wowDailyBody=dailyTableBody;
+  window._wowWeeklyHead=weeklyTableHead;
+  window._wowWeeklyBody=weeklyTableBody;
+  window._wowTableEl=tableEl;
+
+  wowSetView('daily');
+}
+
+function wowSetView(mode){
+  const cities=window._wowCities||[];
+  const dailyRows=window._wowDailyRows||[];
+  const weeks=window._wowWeeks||[];
+  const weekMap=window._wowWeekMap||{};
+  const tableEl=window._wowTableEl||document.getElementById('wow-table-el');
+  const short=c=>c.replace('New York City','NYC').replace('Hudson Valley','HV').replace('Philadelphia','PHL').replace('Pittsburgh','PGH').replace('St. Louis','STL').replace('Nashville','NSH');
+
+  // Toggle button styles
+  document.getElementById('wow-daily-btn')?.style&&(document.getElementById('wow-daily-btn').style.cssText=mode==='daily'?'background:var(--wine);color:#fff':'');
+  document.getElementById('wow-weekly-btn')?.style&&(document.getElementById('wow-weekly-btn').style.cssText=mode==='weekly'?'background:var(--wine);color:#fff':'');
+  if(mode==='daily'){
+    document.getElementById('wow-daily-btn')&&(document.getElementById('wow-daily-btn').className='btn btn-sm');
+    document.getElementById('wow-daily-btn')&&(document.getElementById('wow-daily-btn').style.background='var(--wine)',document.getElementById('wow-daily-btn').style.color='#fff');
+    document.getElementById('wow-weekly-btn')&&(document.getElementById('wow-weekly-btn').className='btn btn-sm btn-outline',document.getElementById('wow-weekly-btn').style.background='',document.getElementById('wow-weekly-btn').style.color='');
+  }else{
+    document.getElementById('wow-weekly-btn')&&(document.getElementById('wow-weekly-btn').className='btn btn-sm');
+    document.getElementById('wow-weekly-btn')&&(document.getElementById('wow-weekly-btn').style.background='var(--wine)',document.getElementById('wow-weekly-btn').style.color='#fff');
+    document.getElementById('wow-daily-btn')&&(document.getElementById('wow-daily-btn').className='btn btn-sm btn-outline',document.getElementById('wow-daily-btn').style.background='',document.getElementById('wow-daily-btn').style.color='');
+  }
+
+  // Rebuild chart
+  if(wowChart){wowChart.destroy();wowChart=null;}
+  const canvas=document.getElementById('wowChart');
+  if(!canvas)return;
+
+  if(mode==='daily'){
+    // Daily bar chart — one bar per upload day
+    const labels=dailyRows.map(r=>new Date(r.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+    wowChart=new Chart(canvas,{type:'bar',data:{labels,datasets:cities.map((c,i)=>({label:c,data:dailyRows.map(r=>r.cities[c]||0),backgroundColor:PALETTE[i%PALETTE.length],borderRadius:2}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>'Upload: '+i[0].label,label:i=>`${i.dataset.label}: +${i.raw.toLocaleString()} tickets`}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:45}},y:{stacked:true,ticks:{font:{size:11},callback:v=>'+'+v.toLocaleString()},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+    tableEl.querySelector('thead').innerHTML=window._wowDailyHead||'';
+    tableEl.querySelector('tbody').innerHTML=window._wowDailyBody||'';
+  }else{
+    // Weekly bar chart
+    const labels=weeks.map(w=>new Date(w+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+    wowChart=new Chart(canvas,{type:'bar',data:{labels,datasets:cities.map((c,i)=>({label:c,data:weeks.map(w=>weekMap[w][c]||0),backgroundColor:PALETTE[i%PALETTE.length],borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>'Week of '+i[0].label,label:i=>`${i.dataset.label}: +${i.raw.toLocaleString()} tickets`}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:11}}},y:{stacked:true,ticks:{font:{size:11},callback:v=>'+'+v.toLocaleString()},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+    tableEl.querySelector('thead').innerHTML=window._wowWeeklyHead||'';
+    tableEl.querySelector('tbody').innerHTML=window._wowWeeklyBody||'';
+  }
+}
+function buildPacing(tour){const bc=byCity(tour.shows||[]),cities=cityOrder(tour.shows||[]),today=new Date();today.setHours(0,0,0,0);let html='';cities.forEach(city=>{const d=bc[city]||{count:0,sales:0,shows:[]},cap=tour.caps[city]||{sell:0,beTickets:0,beGross:0,potGross:0},shows=[...d.shows].sort((a,b)=>a.date.localeCompare(b.date));if(!shows.length)return;const ns=shows.length,tsc=(cap.sell||0)*ns,ts=d.count,tg=d.sales,lsd=new Date(shows[shows.length-1].date+'T12:00:00');lsd.setHours(0,0,0,0);const dl=Math.max(0,Math.round((lsd-today)/86400000)),wl=dl>0?(dl/7).toFixed(1):'0',isPast=dl===0,beT=cap.beTickets||0,beG=cap.beGross||0,pot=cap.potGross||0,ttSO=Math.max(0,tsc-ts),ttBE=Math.max(0,beT-ts),gtBE=Math.max(0,beG-tg),gtP=Math.max(0,pot-tg),dTBE=dl>0&&ttBE>0?(ttBE/dl).toFixed(1):'—',wTBE=dl>0&&ttBE>0?Math.ceil(ttBE/(dl/7)):'—',dTSO=dl>0&&ttSO>0?(ttSO/dl).toFixed(1):'—',wTSO=dl>0&&ttSO>0?Math.ceil(ttSO/(dl/7)):'—',bTPct=beT>0?Math.min(100,ts/beT*100):0,bGPct=beG>0?Math.min(100,tg/beG*100):0,pPct=pot>0?Math.min(100,tg/pot*100):0,cPct=tsc>0?Math.min(100,ts/tsc*100):0,hasTgt=beT>0||beG>0||pot>0;let urg='',urgC='';if(!isPast&&dl>0){if(bTPct>=100){urg='✓ BE reached';urgC='green';}else if(dl<=14){urg='Urgent';urgC='red';}else if(dl<=30){urg='Watch closely';urgC='amber';}else{urg='On track';urgC='green';}}else if(isPast){urg='Run complete';urgC='green';}
+html+=`<div class="pacing-market"><div class="pacing-market-hdr"><div><h3>${city}&nbsp;<span class="urgency-chip ${urgC}">${urg}</span></h3><div class="hdr-meta">${ns} show${ns!==1?'s':''} · Last: ${fmtDate(shows[shows.length-1].date)} · ${isPast?'Complete':`${dl} days / ${wl} wks remaining`}</div></div></div><div class="pacing-body">`;
+if(!hasTgt)html+=`<div class="no-targets-note">No financial targets set. Enter below.<div class="inline-target-edit"><div class="inline-edit-field"><label>BE tickets</label><input type="number" id="be-t-${slug(city)}"></div><div class="inline-edit-field"><label>BE gross ($)</label><input type="number" id="be-g-${slug(city)}"></div><div class="inline-edit-field"><label>Potential gross ($)</label><input type="number" id="pot-${slug(city)}"></div></div><button class="inline-save-btn" onclick="saveInlineTargets('${activeTourId}','${city}')">Save targets ↓</button></div>`;
+html+=`<div class="progress-section">`;
+if(beT>0)html+=`<div class="progress-label"><span>Tickets to BE (${ts.toLocaleString()} of ${beT.toLocaleString()})</span><span>${bTPct.toFixed(1)}%</span></div><div class="progress-track"><div class="progress-fill ${bTPct>=100?'green':bTPct>=70?'cw':'amber'}" style="width:${bTPct}%"></div></div>`;
+if(beG>0)html+=`<div class="progress-label" style="margin-top:10px"><span>Gross to BE (${fmt$(tg)} of ${fmt$(beG)})</span><span>${bGPct.toFixed(1)}%</span></div><div class="progress-track"><div class="progress-fill ${bGPct>=100?'green':bGPct>=70?'cw':'amber'}" style="width:${bGPct}%"></div></div>`;
+if(pot>0)html+=`<div class="progress-label" style="margin-top:10px"><span>Gross to potential (${fmt$(tg)} of ${fmt$(pot)})</span><span>${pPct.toFixed(1)}%</span></div><div class="progress-track"><div class="progress-fill cw" style="width:${pPct}%"></div></div>`;
+html+=`</div><div class="pacing-targets"><div class="pacing-target"><div class="pacing-target-label">Sold so far</div><div class="pacing-target-value">${ts.toLocaleString()}</div><div class="pacing-target-sub">of ${tsc.toLocaleString()} sellable (${cPct.toFixed(1)}%)</div></div>`;
+if(beT>0)html+=`<div class="pacing-target ${ttBE===0?'green':''}"><div class="pacing-target-label">Still need (BE)</div><div class="pacing-target-value">${ttBE>0?ttBE.toLocaleString():'✓ Done'}</div><div class="pacing-target-sub">${ttBE>0?fmt$(gtBE)+' gross to go':fmt$(Math.max(0,tg-beG))+' over BE'}</div></div>`;
+html+=`<div class="pacing-target"><div class="pacing-target-label">Still need (sellout)</div><div class="pacing-target-value">${ttSO>0?ttSO.toLocaleString():'✓ Sold out'}</div><div class="pacing-target-sub">${ttSO>0?fmt$(gtP)+' to potential':'Congratulations!'}</div></div>`;
+if(dl>0&&beT>0&&ttBE>0)html+=`<div class="pacing-target ${dl<=14?'amber':''}"><div class="pacing-target-label">Daily pace (BE)</div><div class="pacing-target-value">${dTBE}</div><div class="pacing-target-sub">${wTBE}/week to BE</div></div>`;
+if(dl>0&&ttSO>0)html+=`<div class="pacing-target"><div class="pacing-target-label">Daily pace (sellout)</div><div class="pacing-target-value">${dTSO}</div><div class="pacing-target-sub">${wTSO}/week to sellout</div></div>`;
+html+=`</div><hr class="section-divider"><div class="section-label">Per-show countdown</div><div class="show-pacing-grid">`;
+shows.forEach(show=>{const sd=new Date(show.date+'T12:00:00');sd.setHours(0,0,0,0);const sDays=Math.max(0,Math.round((sd-today)/86400000)),sCap=cap.sell||0,sPct=sCap>0?(show.count/sCap*100).toFixed(1):'0.0',sLeft=Math.max(0,sCap-show.count),lbl=sDays===0?'Today':sDays===1?'Tomorrow':`${sDays} days away`;html+=`<div class="show-pacing-card"><div class="show-pacing-date">${fmtDate(show.date)}</div><div class="show-pacing-row"><span>Sold</span><span>${show.count} / ${sCap} (${sPct}%)</span></div><div class="show-pacing-row"><span>Revenue</span><span>${fmt$(show.sales)}</span></div><div class="show-pacing-row"><span>Remaining</span><span>${sLeft.toLocaleString()}</span></div><div class="show-pacing-row"><span>Days away</span><span>${lbl}</span></div></div>`;});
+html+=`</div></div></div>`;});if(!html)html='<p style="color:var(--muted);font-size:12px">Upload a CSV to see pacing data.</p>';document.getElementById('pacing-content').innerHTML=html;}
+function saveInlineTargets(tourId,city){const key=slug(city),beT=parseInt(document.getElementById('be-t-'+key)?.value)||0,beG=parseFloat(document.getElementById('be-g-'+key)?.value)||0,pot=parseFloat(document.getElementById('pot-'+key)?.value)||0;if(!tours[tourId]?.caps?.[city])return;tours[tourId].caps[city].beTickets=beT;tours[tourId].caps[city].beGross=beG;tours[tourId].caps[city].potGross=pot;saveTours();buildPacing(tours[tourId]);toast('✓ Targets saved for '+city,'ok');}
+
+/* ════════════════════════════════════════
+   META ADS TAB
+   ════════════════════════════════════════ */
+async function buildMetaAds(tour){
+  const container=document.getElementById('meta-content');
+  container.innerHTML='<div class="meta-empty"><div class="meta-empty-icon">⏳</div><div class="meta-empty-text">Loading Meta Ads data…</div></div>';
+
+  // Check if tour has meta config
+  const campaign=tour.metaCampaign||'';
+  const cpaTarget=tour.metaCpaTarget||18;
+  const avgTicket=tour.metaAvgTicket||0;
+
+  if(!campaign){
+    container.innerHTML=`<div class="meta-config-note">⚙️ <strong>Meta Campaign not configured.</strong> Edit this tour and add the Meta Campaign Name to link live ad data.</div><div class="meta-empty"><div class="meta-empty-icon">📊</div><div class="meta-empty-text">Add a Meta Campaign Name in the tour setup to automatically pull live spend, results, and CPA data for this tour's markets.</div></div>`;
+    return;
+  }
+
+  let data;
+  try{
+    const res=await fetch(META_API);
+    if(!res.ok)throw new Error('API error');
+    data=await res.json();
+  }catch(e){
+    container.innerHTML=`<div class="meta-empty"><div class="meta-empty-icon">⚠️</div><div class="meta-empty-text">Could not load Meta data. Check your connection and try again.<br><br><button class="btn btn-outline btn-sm" onclick="buildMetaAds(tours['${tour.id}'])">Retry</button></div></div>`;
+    return;
+  }
+
+  const updatedAt=data.updated?new Date(data.updated).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Unknown';
+  const allAdsets=data.adsets||[];
+
+  // Filter: match campaign name, exclude city-only campaigns and junk
+  const EXCLUDE_TERMS=['instagram','ig boost','ig post','miru','ofcorsica','of corsica'];
+  const adsets=allAdsets.filter(a=>{
+    const name=(a.Name||'').toLowerCase();
+    const camp=(a['Campaign Name']||'').toLowerCase();
+    const campy=a._campaignName||'';
+    if(EXCLUDE_TERMS.some(t=>name.includes(t)))return false;
+    if(a._isTourMismatch)return false;
+    // Match tour's campaign name (case-insensitive partial)
+    const campLower=campaign.toLowerCase();
+    return campy.toLowerCase().includes(campLower)||camp.includes(campLower);
+  });
+
+  if(!adsets.length){
+    container.innerHTML=`<div class="meta-refresh-bar"><span class="meta-refresh-ts">Last updated: ${updatedAt}</span><button class="btn btn-outline btn-sm" onclick="buildMetaAds(tours['${tour.id}'])">🔄 Refresh</button></div><div class="meta-config-note">No adsets found matching campaign "${campaign}". Make sure the campaign name in tour setup matches your Meta campaign.</div>`;
+    return;
+  }
+
+  // Aggregate KPIs
+  const totalSpend=adsets.reduce((a,s)=>a+(parseFloat(s.Spend)||0),0);
+  const totalResults=adsets.reduce((a,s)=>a+(parseInt(s.Results)||0),0);
+  const totalImpressions=adsets.reduce((a,s)=>a+(parseInt(s.Impressions)||0),0);
+  const totalConvValue=adsets.reduce((a,s)=>a+(parseFloat(s['Purchases Conversion Value'])||0),0);
+  const blendedCPA=totalResults>0?totalSpend/totalResults:0;
+  const roas=totalSpend>0?totalConvValue/totalSpend:0;
+
+  // Group by location — pull budget, start date, end date from adset fields
+  const locMap={};
+  adsets.forEach(a=>{
+    const name=a.Name||'';
+    const locCode=name.split('-')[0].trim().toUpperCase();
+    const locFull=META_LOC_MAP[locCode]||locCode;
+    if(!locMap[locFull])locMap[locFull]={spend:0,budget:0,results:0,impressions:0,reach:0,convValue:0,adsets:[],status:'',startDate:'',endDate:''};
+    const loc=locMap[locFull];
+    loc.spend+=parseFloat(a.Spend)||0;
+    // Budget: sum daily_budget or lifetime_budget fields from API
+    loc.budget+=parseFloat(a['Daily Budget']||a['Lifetime Budget']||a.Budget||0);
+    loc.results+=parseInt(a.Results)||0;
+    loc.impressions+=parseInt(a.Impressions)||0;
+    loc.reach+=parseInt(a.Reach)||0;
+    loc.convValue+=parseFloat(a['Purchases Conversion Value'])||0;
+    loc.adsets.push(a);
+    if(a['Effective Status']==='ACTIVE')loc.status='ACTIVE';
+    else if(!loc.status)loc.status=a['Effective Status']||'UNKNOWN';
+    // Start/end dates — keep earliest start, latest end across adsets in this location
+    const sd=a['Start Date']||a.start_date||a['Ad Start Time']||'';
+    const ed=a['End Date']||a.end_date||a['Ad Stop Time']||'';
+    if(sd&&(!loc.startDate||sd<loc.startDate))loc.startDate=sd;
+    if(ed&&(!loc.endDate||ed>loc.endDate))loc.endDate=ed;
+  });
+
+  // NEW CPA-based Action logic per spec
+  function getRec(loc,cpaT){
+    const cpa=loc.results>0?loc.spend/loc.results:0;
+    if(loc.status!=='ACTIVE')return{badge:'paused',label:'Paused'};
+    if(cpa<=0)return{badge:'hold',label:'Hold'};
+    if(cpa<=cpaT*0.75)return{badge:'scale',label:'Scale'};
+    if(cpa<=cpaT*1.30)return{badge:'hold',label:'Hold'};
+    return{badge:'stop',label:'Stop'};
+  }
+
+  // Format date strings from API (handles ISO, MM/DD/YYYY, timestamps)
+  function fmtMetaDate(d){
+    if(!d||d==='—')return'—';
+    try{
+      const dt=new Date(d);
+      if(isNaN(dt.getTime()))return d;
+      return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});
+    }catch(e){return d;}
+  }
+
+  // Build location rows
+  let locRows='';
+  Object.entries(locMap).sort((a,b)=>b[1].spend-a[1].spend).forEach(([loc,d])=>{
+    const cpa=d.results>0?d.spend/d.results:0;
+    const cpaClass=cpa<=cpaTarget?'cpa-good':cpa<=cpaTarget*1.3?'cpa-warn':'cpa-bad';
+    const freq=d.reach>0?(d.impressions/d.reach):0;
+    const freqWarn=freq>=4.5?'⚠️ ':'';
+    const roasLoc=d.spend>0?d.convValue/d.spend:0;
+    const rec=getRec(d,cpaTarget);
+    const budgetStr=d.budget>0?fmt$(d.budget):'—';
+    const startStr=fmtMetaDate(d.startDate);
+    const endStr=fmtMetaDate(d.endDate);
+    locRows+=`<tr>
+      <td><strong>${loc}</strong></td>
+      <td class="r">${fmt$(d.spend)}</td>
+      <td class="r" style="color:var(--muted)">${budgetStr}</td>
+      <td class="r">${d.results.toLocaleString()}</td>
+      <td class="r ${cpaClass}">${d.results>0?fmt$(cpa):'—'}</td>
+      <td class="r">${d.impressions>0?(d.results/d.impressions*1000).toFixed(2)+'‰':'—'}</td>
+      <td class="r">${freqWarn}${d.reach>0?freq.toFixed(1):'—'}</td>
+      <td class="r">${d.spend>0?roasLoc.toFixed(2)+'x':'—'}</td>
+      <td><span class="meta-badge ${rec.badge}">${rec.label}</span></td>
+      <td class="r" style="font-size:11px;color:var(--muted)">${startStr}</td>
+      <td class="r" style="font-size:11px;color:var(--muted)">${endStr}</td>
+    </tr>`;
+  });
+
+  container.innerHTML=`
+    <div class="meta-refresh-bar">
+      <span class="meta-refresh-ts">Campaign: <strong>${campaign}</strong> · Last updated: ${updatedAt}</span>
+      <button class="btn btn-outline btn-sm" onclick="buildMetaAds(tours['${tour.id}'])">🔄 Refresh</button>
+    </div>
+    <div class="meta-kpi-grid">
+      <div class="kpi"><div class="kpi-label">Total Spend</div><div class="kpi-value">${fmt$(totalSpend)}</div></div>
+      <div class="kpi"><div class="kpi-label">Total Results</div><div class="kpi-value">${totalResults.toLocaleString()}</div></div>
+      <div class="kpi ${blendedCPA>0&&blendedCPA<=cpaTarget?'kpi-success':''}"><div class="kpi-label">Blended CPA</div><div class="kpi-value">${totalResults>0?fmt$(blendedCPA):'—'}</div><div class="kpi-sub">Target: ${fmt$(cpaTarget)}</div></div>
+      <div class="kpi"><div class="kpi-label">Conv. Value</div><div class="kpi-value">${fmt$(totalConvValue)}</div></div>
+      <div class="kpi"><div class="kpi-label">ROAS</div><div class="kpi-value">${totalSpend>0?roas.toFixed(2)+'x':'—'}</div></div>
+      <div class="kpi"><div class="kpi-label">Impressions</div><div class="kpi-value">${totalImpressions.toLocaleString()}</div></div>
+    </div>
+    <div class="meta-section-title">Performance by Market</div>
+    <div class="tbl-wrap" style="overflow-x:auto">
+      <table class="meta-loc-table">
+        <thead><tr>
+          <th>Market</th>
+          <th class="r">Spend</th>
+          <th class="r">Budget</th>
+          <th class="r">Results</th>
+          <th class="r">CPA</th>
+          <th class="r">Conv Rate‰</th>
+          <th class="r">Freq</th>
+          <th class="r">ROAS</th>
+          <th>Action</th>
+          <th class="r">Start</th>
+          <th class="r">End</th>
+        </tr></thead>
+        <tbody>${locRows}</tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">
+      CPA target: ${fmt$(cpaTarget)} · <span style="color:var(--green)">●</span> Scale ≤75% of target · <span style="color:var(--amber)">●</span> Hold ≤130% · <span style="color:var(--red)">●</span> Stop >130% · ⚠️ Frequency ≥4.5
+    </div>`;
+}
+
+/* ════════════════════════════════════════
+   CSV HANDLING — MERGE FIX
+   ════════════════════════════════════════ */
+function parseCSV(text){const lines=text.split('\n').filter(l=>l.trim()),hdr=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,'')),dateI=hdr.findIndex(h=>h.includes('event start')||h==='date'||h.includes('start')),locI=hdr.findIndex(h=>h.includes('location')||h==='market'||h==='city'),cntI=hdr.findIndex(h=>h==='# sales'||h==='count'||h==='sold'||h==='tickets'||(h.includes('ticket')&&!h.includes('net'))),revI=hdr.findIndex(h=>h==='revenue'),netI=hdr.findIndex(h=>h==='net sales'),salI=revI>=0?revI:(netI>=0?netI:hdr.findIndex(h=>h.includes('gross')||h==='sales'));if(dateI<0||locI<0||cntI<0){console.warn('CSV headers:',hdr);return null;}const shows=[];for(let i=1;i<lines.length;i++){const cols=lines[i].split(',');if(!cols[dateI]||!cols[locI])continue;const typeI=hdr.findIndex(h=>h.includes('item type')||h==='type');if(typeI>=0&&cols[typeI]?.trim().toLowerCase()==='fee')continue;const raw=cols[dateI].trim().replace(/"/g,'');let iso=raw;
+// Universal date parser — handles all known formats:
+// M/D/YY H:MM  →  2026-07-24  (new box office format with 2-digit year + time)
+// MM/DD/YYYY   →  2026-08-25  (standard US format)
+// YYYY-MM-DD   →  pass through (already correct)
+// YYYY H:MM PM-MM-DD  →  2026-08-21  (old corrupted format)
+// YYYY-MM-DDT18:00:00 →  strip time
+if(raw.includes('/')){
+  // Split date from time first (handle 'M/D/YY H:MM' or 'MM/DD/YYYY')
+  const datePart=raw.split(' ')[0].split('T')[0];
+  const pts=datePart.split('/');
+  if(pts.length===3){
+    let[m,d,y]=pts;
+    // Fix 2-digit year
+    if(y.length<=2)y=(parseInt(y)<50?'20':'19')+y.padStart(2,'0');
+    iso=`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+}
+// YYYY H:MM PM-MM-DD format (old corrupted format)
+else if(/^\d{4}\s+.*-(\d{2})-(\d{2})$/.test(raw)){const pm=raw.match(/^(\d{4})\s+.*-(\d{2})-(\d{2})$/);if(pm)iso=`${pm[1]}-${pm[2]}-${pm[3]}`;}
+// YYYY-MM-DD with optional time suffix — strip time
+else if(raw.match(/^\d{4}-\d{2}-\d{2}/)){iso=raw.slice(0,10);}// Extract show time if present in raw date field (e.g. '7/25/26 21:00')
+let showTime='';
+if(raw.includes(' ')&&raw.includes(':')){const tp=raw.split(' ');if(tp.length>1&&tp[tp.length-1].includes(':'))showTime=tp[tp.length-1];}
+shows.push({date:iso,city:cols[locI].trim().replace(/"/g,''),count:parseInt(cols[cntI])||0,sales:salI>=0?(parseFloat(cols[salI])||0):0,showTime});}return shows;}
+function findTourByFilename(filename){const fn=filename.toLowerCase().replace(/[^a-z0-9]+/g,'_');return Object.values(tours).find(t=>{const kw=(t.keyword||t.artist).toLowerCase().replace(/[^a-z0-9]+/g,'_');return fn.includes(kw)||fn.includes(t.artist.toLowerCase().replace(/[^a-z0-9]+/g,'_'));});}
+function handleGlobalCSV(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const shows=parseCSV(ev.target.result);if(!shows){toast('⚠ Could not parse CSV','err');return;}const tour=findTourByFilename(file.name);if(!tour){toast('⚠ No tour matched "'+file.name+'" — check keyword','err');return;}showModal('Confirm CSV update',`Update "${tour.artist}" with ${shows.length} records? New data will be MERGED with existing counts (never zeroed).`,()=>applyCSV(tour.id,shows,file.name));};reader.readAsText(file);e.target.value='';}
+function handleTourCSV(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const shows=parseCSV(ev.target.result);if(!shows){toast('⚠ Could not parse CSV','err');return;}const tour=tours[activeTourId];showModal('Confirm CSV update',`Update "${tour.artist}" with ${shows.length} records? New data will be MERGED with existing counts (never zeroed).`,()=>applyCSV(activeTourId,shows,file.name));};reader.readAsText(file);e.target.value='';}
+
+/* ════════════════════════════════════════
+   collapseShows — collapse same date+city rows
+   Handles early/late shows and double uploads
+   ════════════════════════════════════════ */
+function collapseShows(shows){
+  if(!shows||!shows.length)return[];
+  // Only collapse TRUE duplicates: same date+city+count+sales (double uploads)
+  // Keep separate rows for different show times (early/late on same night)
+  const seen={};
+  const result=[];
+  shows.forEach(s=>{
+    const d=sanitizeDate(s.date)||s.date;
+    // Dedupe key includes count+sales to distinguish real shows from double uploads
+    const key=d+'|'+s.city+'|'+s.count+'|'+Math.round(s.sales);
+    if(!seen[key]){seen[key]=true;result.push({...s,date:d});}
+  });
+  return result.sort((a,b)=>a.city.localeCompare(b.city)||a.date.localeCompare(b.date)||((a.showTime||'').localeCompare(b.showTime||'')));
+}
+
+/* ════════════════════════════════════════
+   APPLY CSV — MERGE (NOT REPLACE) FIX
+   Each upload MERGES into existing shows.
+   For same date+city: take MAX(existing, new).
+   This means daily CSV uploads accumulate
+   correctly — counts never go backward.
+   ════════════════════════════════════════ */
+function applyCSV(tourId,newShows,filename){
+  const tour=tours[tourId],today=new Date().toISOString().slice(0,10);
+
+  // Presale snapshot logic (unchanged)
+  if(tour.onsaleDate&&today<tour.onsaleDate&&!tour.presaleLockedAt){
+    const ps={};newShows.forEach(s=>{ps[s.date]=(ps[s.date]||0)+s.count;});
+    tour.presaleSnapshot=ps;
+    tour.presaleLockedAt=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    toast('✓ Presale snapshot locked','ok');
+  }
+
+  // Collapse new shows (handles early+late rows & double CSV uploads)
+  const collapsed=collapseShows(newShows);
+  // Collapse existing shows (cleans any historical dupes)
+  const existingClean=collapseShows(tour.shows||[]);
+  // Merge — build map from existing, update with new (keep higher count)
+  const map={};
+  existingClean.forEach(s=>{map[s.date+'|'+s.city]={...s};});
+  collapsed.forEach(s=>{
+    const key=s.date+'|'+s.city;
+    if(map[key]){if(s.count>=map[key].count){map[key]={...map[key],count:s.count,sales:s.sales};}}
+    else{map[key]={...s};}
+  });
+  const merged=Object.values(map).sort((a,b)=>a.city.localeCompare(b.city)||a.date.localeCompare(b.date));
+  tour.shows=merged;
+  tour.updatedAt=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  saveWoWSnapshot(tour,merged);
+  if(wowChart){wowChart.destroy();wowChart=null;}
+  saveTours();
+  if(activeTourId===tourId){
+    buildSales(tour);buildByShow(tour);
+    document.getElementById('th-sub').textContent=`${Object.keys(tour.caps||{}).length} markets · Last updated: ${tour.updatedAt}`;
+  }
+  toast('✓ '+tour.artist+' updated — '+merged.length+' total show records','ok');
+}
+
+function saveWoWSnapshot(tour,shows){
+  if(!tour.wowSnapshots)tour.wowSnapshots=[];
+  const totals={};
+  shows.forEach(s=>{totals[s.city]=(totals[s.city]||0)+s.count;});
+  const now=new Date(),uploadDate=now.toISOString().slice(0,10),uploadedAt=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  // Save one snapshot per calendar day (not per week) — replace same-day upload
+  const existingIdx=tour.wowSnapshots.findIndex(s=>s.uploadDate===uploadDate);
+  const snapshot={uploadDate,uploadedAt,totals};
+  if(existingIdx>=0){tour.wowSnapshots[existingIdx]=snapshot;}
+  else{tour.wowSnapshots.push(snapshot);}
+  tour.wowSnapshots.sort((a,b)=>a.uploadDate.localeCompare(b.uploadDate));
+}
+function archiveTour(id){const t=tours[id];showModal('Archive this tour?',`"${t.artist}" will be moved to archived.`,()=>{t.archived=true;saveTours();goHome();toast(`"${t.artist}" archived`);}
+function deleteTour(id){if(!tours[id])return;if(confirm('Delete "'+tours[id].artist+'"? Cannot be undone.')){delete tours[id];saveTours();renderHome();}});}
+function archiveCurrentTour(){if(activeTourId)archiveTour(activeTourId);}
+function unarchiveTour(id){tours[id].archived=false;saveTours();renderHome();toast('Tour restored to active');}
+function downloadArchive(id){const tour=tours[id],bc=byCity(tour.shows||[]),cities=cityOrder(tour.shows||[]),ts=Object.values(bc).reduce((a,b)=>a+b.count,0),tr=Object.values(bc).reduce((a,b)=>a+b.sales,0);let rows='';cities.forEach(city=>{const d=bc[city],cap=tour.caps[city]?.sell||0,shows=[...d.shows].sort((a,b)=>a.date.localeCompare(b.date));shows.forEach(s=>{const p=cap>0?(s.count/cap*100).toFixed(1):'—';rows+=`<tr><td>${city}</td><td>${fmtDate(s.date)}</td><td>${s.count}</td><td>${p}%</td><td>$${s.sales.toLocaleString()}</td></tr>`;});});const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${tour.artist} Archive</title><style>body{font-family:Georgia,serif;max-width:900px;margin:40px auto;padding:20px}h1{color:#6B1A3A}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#6B1A3A;color:#fff;padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase}td{padding:8px 12px;border-bottom:1px solid #f0e8ec}.m{display:flex;gap:20px;margin-bottom:24px}.s{background:#f5eaef;padding:12px 16px;border-radius:8px}.sl{font-size:10px;text-transform:uppercase;color:#6b6b6b}.sv{font-size:22px;color:#6B1A3A}</style></head><body><h1>${tour.artist}</h1><h2 style="color:#888;font-weight:normal">${tour.tourName} — Archive</h2><div class="m"><div class="s"><div class="sl">Tickets sold</div><div class="sv">${ts.toLocaleString()}</div></div><div class="s"><div class="sl">Revenue</div><div class="sv">$${Math.round(tr).toLocaleString()}</div></div><div class="s"><div class="sl">Markets</div><div class="sv">${cities.length}</div></div></div><table><thead><tr><th>Market</th><th>Date</th><th>Sold</th><th>% Cap</th><th>Revenue</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;const blob=new Blob([html],{type:'text/html'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=`${tour.artist.replace(/\s+/g,'_')}_Archive.html`;a.click();URL.revokeObjectURL(u);toast('Downloaded archive for '+tour.artist);}
+
+/* ════════════════════════════════════════
+   TOUR SETUP FORM
+   ════════════════════════════════════════ */
+function goSetup(tourId=null){editingTourId=tourId||null;mktCount=0;addedMkts.clear();document.getElementById('setup-title').textContent=tourId?'Edit Tour':'Create New Tour';showScreen('setup');['f-artist','f-tour','f-keyword','f-vinofile-presale','f-onsale','f-meta-campaign','f-meta-cpa','f-meta-avg-ticket','f-meta-start'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});// Reset CPA default
+document.getElementById('f-meta-cpa').value='18';
+document.getElementById('mkt-cards').innerHTML='';const chips=document.getElementById('mkt-chips');chips.innerHTML='';Object.keys(KNOWN_CAPS).forEach(name=>{const c=document.createElement('button');c.className='mchip';c.textContent=name;c.id='chip-'+slug(name);c.onclick=()=>{if(addedMkts.has(name))return;addedMkts.add(name);c.classList.add('sel');addMktCard(name,KNOWN_CAPS[name][0].sell,KNOWN_CAPS[name][0].total);};chips.appendChild(c);});if(tourId){const t=tours[tourId];document.getElementById('f-artist').value=t.artist||'';document.getElementById('f-tour').value=t.tourName||'';document.getElementById('f-keyword').value=t.keyword||'';document.getElementById('f-vinofile-presale').value=t.vinofilePresaleDate||'';document.getElementById('f-onsale').value=t.onsaleDate||'';// Meta fields
+document.getElementById('f-meta-campaign').value=t.metaCampaign||'';document.getElementById('f-meta-cpa').value=t.metaCpaTarget||18;document.getElementById('f-meta-avg-ticket').value=t.metaAvgTicket||'';document.getElementById('f-meta-start').value=t.metaAdsStartDate||'';
+Object.entries(t.caps||{}).forEach(([name,cap])=>{addedMkts.add(name);const chip=document.getElementById('chip-'+slug(name));if(chip)chip.classList.add('sel');addMktCard(name,cap.sell,cap.total,cap.beTickets,cap.beGross,cap.potGross,cap.comment);});}}
+function cancelSetup(){editingTourId?openTour(editingTourId):goHome();}
+function editTour(){if(activeTourId)goSetup(activeTourId);}
+function addMktCard(name='',sell='',total='',beTickets='',beGross='',potGross='',comment=''){mktCount++;const id='smkt'+mktCount,configs=KNOWN_CAPS[name]||[],hasCfg=configs.length>1,div=document.createElement('div');div.className='mkt-card';div.id=id;let cfgRow='';if(hasCfg){const opts=configs.map((c,i)=>`<option value="${i}">${c.label}</option>`).join('');cfgRow=`<div class="cfg-select-row"><label>Room config</label><select onchange="updateMktCapFromCfg('${id}','${name}',this.value)">${opts}</select></div>`;}div.innerHTML=`${cfgRow}<div class="mkt-card-hdr"><span>${name||'Custom market'}</span><button class="mkt-remove" onclick="removeMktCard('${id}','${name}')">✕</button></div><div class="mkt-grid"><div class="form-field"><label>Market name</label><input type="text" class="sm-name" value="${name}" placeholder="City"></div><div class="form-field"><label>Sellable cap / show</label><input type="number" class="sm-sell" value="${sell}" placeholder="e.g. 304"></div><div class="form-field"><label>Total capacity / show</label><input type="number" class="sm-total" value="${total}" placeholder="e.g. 345"></div></div><div style="padding:0 14px 10px;border-top:1px solid var(--border)"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px;font-weight:600">Financial targets — full market run</div><div class="mkt-grid"><div class="form-field"><label>Breakeven tickets</label><input type="number" class="sm-be-tickets" value="${beTickets}" placeholder="e.g. 560"></div><div class="form-field"><label>Breakeven gross ($)</label><input type="number" class="sm-be-gross" value="${beGross}" placeholder="e.g. 98000"></div><div class="form-field"><label>Potential gross ($)</label><input type="number" class="sm-pot-gross" value="${potGross}" placeholder="e.g. 163000"></div></div></div><div class="mkt-shows-section"><div class="mkt-shows-label">Show dates — add one row per show</div><div class="sm-shows-list" id="shows-${id}"></div><button type="button" onclick="addShowRow('${id}')" class="add-show-row-btn">+ Add show date</button></div><div class="mkt-comment-section"><label>Market notes</label><textarea class="sm-comment" placeholder="e.g. Co-promoted · Special guest">${comment}</textarea></div>`;document.getElementById('mkt-cards').appendChild(div);addShowRow(id);}
+function updateMktCapFromCfg(mktId,mktName,cfgIdx){const cfg=KNOWN_CAPS[mktName]?.[parseInt(cfgIdx)];if(!cfg)return;const card=document.getElementById(mktId);if(!card)return;card.querySelector('.sm-sell').value=cfg.sell;card.querySelector('.sm-total').value=cfg.total;}
+function addShowRow(mktId){const list=document.getElementById('shows-'+mktId);if(!list)return;const row=document.createElement('div');row.className='show-row-form';row.innerHTML=`<div><label>Date</label><input type="date" class="sm-date"></div><div><label>Show type</label><select class="sm-showtype"><option>Single</option><option>Early</option><option>Late</option><option>Custom</option></select></div><div><label>Potential gross ($)</label><input type="number" class="sm-potgross" placeholder="e.g. 21000"></div><button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;margin-top:16px">✕</button>`;list.appendChild(row);}
+function removeMktCard(id,name){document.getElementById(id)?.remove();if(name){addedMkts.delete(name);document.getElementById('chip-'+slug(name))?.classList.remove('sel');}}
+function saveTourFromForm(){const artist=document.getElementById('f-artist').value.trim();if(!artist){toast('⚠ Artist name is required','err');return;}const tourName=document.getElementById('f-tour').value.trim()||'City Winery Tour 2026',keyword=document.getElementById('f-keyword').value.trim()||artist.replace(/\s+/g,'_'),vinofilePresaleDate=document.getElementById('f-vinofile-presale').value||null,onsaleDate=document.getElementById('f-onsale').value||null,
+// Meta fields
+metaCampaign=document.getElementById('f-meta-campaign').value.trim()||'',metaCpaTarget=parseFloat(document.getElementById('f-meta-cpa').value)||18,metaAvgTicket=parseFloat(document.getElementById('f-meta-avg-ticket').value)||0,metaAdsStartDate=document.getElementById('f-meta-start').value||null,caps={};
+document.querySelectorAll('#mkt-cards .mkt-card').forEach(card=>{const name=card.querySelector('.sm-name')?.value.trim();if(!name)return;const sell=parseInt(card.querySelector('.sm-sell')?.value)||0,total=parseInt(card.querySelector('.sm-total')?.value)||0,beTickets=parseInt(card.querySelector('.sm-be-tickets')?.value)||0,beGross=parseFloat(card.querySelector('.sm-be-gross')?.value)||0,potGross=parseFloat(card.querySelector('.sm-pot-gross')?.value)||0,comment=card.querySelector('.sm-comment')?.value.trim()||'',showDates=[];card.querySelectorAll('.sm-date').forEach((di,idx)=>{const raw=di.value.trim();if(!raw)return;const tis=card.querySelectorAll('.sm-showtype'),pis=card.querySelectorAll('.sm-potgross');showDates.push({date:raw,timeLabel:tis[idx]?.value||'Single',potGross:parseFloat(pis[idx]?.value)||0});});caps[name]={sell,total,beTickets,beGross,potGross,comment,showDates};});if(Object.keys(caps).length===0){toast('⚠ Add at least one market','err');return;}const cleanId=editingTourId||(slug(artist)+'-'+Date.now()),existing=tours[cleanId]||{};tours[cleanId]={...existing,id:cleanId,artist,tourName,keyword,vinofilePresaleDate,onsaleDate,metaCampaign,metaCpaTarget,metaAvgTicket,metaAdsStartDate,updatedAt:new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),archived:existing.archived||false,shows:existing.shows||[],wowSnapshots:existing.wowSnapshots||[],presaleSnapshot:existing.presaleSnapshot||null,presaleLockedAt:existing.presaleLockedAt||null,caps};saveTours();toast('✓ '+artist+(editingTourId?' updated':' created'),'ok');setTimeout(()=>openTour(cleanId),300);}
+
+loadTours();updateSheetsUI();goHome();loadFromSheets(true);
+if(sheetsURL){
+  loadFromSheets(true); // silent auto-load on page open
+  // Auto-sync every 90 seconds so other browsers stay current without manual refresh
+  setInterval(()=>{if(sheetsURL)loadFromSheets(true);},90000);
+}
+</script>
+</body>
+</html>
